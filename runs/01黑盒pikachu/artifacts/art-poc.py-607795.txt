@@ -1,0 +1,43 @@
+import json
+import urllib.error
+import urllib.request
+url = "http://host.docker.internal:8765/vul/sqli/sqli_del.php?id=1%27"
+baseline_url = "http://host.docker.internal:8765/vul/sqli/sqli_del.php?id=1"
+def fetch(target):
+    try:
+        with urllib.request.urlopen(target, timeout=8) as resp:
+            body = resp.read().decode('utf-8', errors='ignore')
+            return {'status': getattr(resp, 'status', 200), 'body': body, 'error': ''}
+    except urllib.error.HTTPError as exc:
+        body = exc.read().decode('utf-8', errors='ignore')
+        return {'status': exc.code, 'body': body, 'error': str(exc)}
+baseline = fetch(baseline_url) if baseline_url else {'status': 0, 'body': '', 'error': ''}
+try:
+    probe = fetch(url)
+    body = probe['body']
+    lowered = body.lower()
+    baseline_body = baseline['body']
+    delta = abs(len(body) - len(baseline_body)) if baseline_url else 0
+    status_changed = bool(baseline_url) and probe['status'] != baseline['status']
+    diff_changed = bool(baseline_url) and delta > 80 and body != baseline_body
+    verified = (
+        ('sql syntax' in lowered)
+        or ('database error' in lowered)
+        or ('pdoexception' in lowered)
+        or ('warning' in lowered and 'mysql' in lowered)
+        or status_changed
+        or diff_changed
+    )
+    print(json.dumps({
+            'verified': verified,
+            'status': 'confirmed' if verified else 'not_confirmed',
+            'request_url': url,
+            'baseline_url': baseline_url,
+            'observed_status': probe['status'],
+            'baseline_status': baseline['status'],
+            'delta': delta,
+            'status_changed': status_changed,
+            'evidence_excerpt': body[:400],
+        }))
+except Exception as exc:
+    print(json.dumps({'verified': False, 'status': 'error', 'request_url': url, 'error': str(exc)}))

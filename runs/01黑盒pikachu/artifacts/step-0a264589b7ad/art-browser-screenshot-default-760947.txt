@@ -1,0 +1,8 @@
+{
+  "browser_session": "default",
+  "current_url": "",
+  "status_code": 0,
+  "dom_excerpt": "",
+  "console_logs": [],
+  "network_events": []
+}

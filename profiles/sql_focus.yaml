@@ -1,0 +1,47 @@
+name: sql_focus
+role: SQL Injection Verification Agent
+description: 面向 SQL 注入候选参数、差异化响应、WAF 绕过评估和 POC 闭环验证的专项 Agent。
+goal: 聚焦表单和查询参数，完成 SQL 注入候选发现、受控验证、绕过策略评估和可复核 POC 证据沉淀。
+skill_names:
+  - state-bootstrap
+  - sql-scan
+  - sql-bypass
+  - poc-verify
+default_tools:
+  - http_request
+  - response_diff
+  - artifact_capture
+  - session_store
+  - run_poc_in_docker
+llm_enabled: true
+provider_name: deepseek
+model_id: deepseek-v4-flash
+base_url: https://api.deepseek.com
+api_key_env: DEEPSEEK_API_KEY
+max_iterations: 18
+max_step_iterations: 5
+max_parallel_steps: 1
+max_parallel_subagents: 1
+state_bootstrap:
+  enabled: true
+  allow_common_lab_credentials: true
+  credential_candidates:
+    - username: admin
+      password: password
+  post_login_urls:
+    - /
+  post_login_state_actions:
+    enabled: true
+    candidate_paths:
+      - /security.php
+      - /security
+      - /settings
+      - /settings/security
+      - /profile/security
+      - /preferences
+    field_values:
+      security: low
+      security_level: low
+      level: low
+      mode: low
+      difficulty: low

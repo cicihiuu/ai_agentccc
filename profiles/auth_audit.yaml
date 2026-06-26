@@ -1,0 +1,51 @@
+name: auth_audit
+role: Authentication and Authorization Audit Agent
+description: 面向认证入口、弱口令、JWT、CORS、权限绕过和 IDOR 风险的访问控制审计 Agent。
+goal: 识别登录与会话相关入口，检测弱口令、JWT/CORS 配置缺陷和访问控制差异，并输出可复核验证证据。
+skill_names:
+  - state-bootstrap
+  - js-audit
+  - permission-bypass
+  - weak-password
+  - jwt-audit
+  - cors-audit
+  - poc-verify
+default_tools:
+  - http_request
+  - response_diff
+  - artifact_capture
+  - browser_action
+  - session_store
+  - run_poc_in_docker
+llm_enabled: true
+provider_name: deepseek
+model_id: deepseek-v4-flash
+base_url: https://api.deepseek.com
+api_key_env: DEEPSEEK_API_KEY
+max_iterations: 22
+max_step_iterations: 4
+max_parallel_steps: 2
+max_parallel_subagents: 1
+state_bootstrap:
+  enabled: true
+  allow_common_lab_credentials: true
+  credential_candidates:
+    - username: admin
+      password: password
+  post_login_urls:
+    - /
+  post_login_state_actions:
+    enabled: true
+    candidate_paths:
+      - /security.php
+      - /security
+      - /settings
+      - /settings/security
+      - /profile/security
+      - /preferences
+    field_values:
+      security: low
+      security_level: low
+      level: low
+      mode: low
+      difficulty: low

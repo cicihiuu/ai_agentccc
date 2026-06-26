@@ -1,0 +1,50 @@
+name: exposure_audit
+role: Exposure and Backup Configuration Audit Agent
+description: 面向资产入口、备份文件、源码快照、配置泄露和前端派生敏感线索的暴露面审计 Agent。
+goal: 优先枚举入口和公开资产，识别备份/配置/源码泄露风险，并将可利用线索路由到后续验证链路。
+skill_names:
+  - state-bootstrap
+  - recon
+  - backup-audit-extended
+  - config-audit
+  - js-audit
+  - poc-verify
+default_tools:
+  - http_request
+  - response_diff
+  - artifact_capture
+  - browser_action
+  - session_store
+  - run_poc_in_docker
+llm_enabled: true
+provider_name: deepseek
+model_id: deepseek-v4-flash
+base_url: https://api.deepseek.com
+api_key_env: DEEPSEEK_API_KEY
+max_iterations: 20
+max_step_iterations: 4
+max_parallel_steps: 3
+max_parallel_subagents: 1
+state_bootstrap:
+  enabled: true
+  allow_common_lab_credentials: true
+  credential_candidates:
+    - username: admin
+      password: password
+  post_login_urls:
+    - /
+  post_login_state_actions:
+    enabled: true
+    candidate_paths:
+      - /security.php
+      - /security
+      - /settings
+      - /settings/security
+      - /profile/security
+      - /preferences
+    field_values:
+      security: low
+      security_level: low
+      level: low
+      mode: low
+      difficulty: low
