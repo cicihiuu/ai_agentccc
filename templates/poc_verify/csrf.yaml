@@ -1,0 +1,47 @@
+name: csrf
+module: poc_verify
+description: Controlled CSRF proof-of-concept verification template for local or course-lab targets.
+triggers:
+  - csrf
+  - cross-site request forgery
+  - missing csrf token
+  - predictable state-changing request
+risk_level: high
+requires_confirmation: true
+inputs:
+  - high_findings
+  - target
+  - original_request_context
+outputs:
+  - structured_poc_record
+  - replay_mode
+  - manual_reproduction_steps
+  - verification_conclusion
+policy:
+  allowed_targets:
+    - localhost
+    - 127.0.0.1
+    - course-lab
+  replay_mode: manual-first
+  active_exploit: disabled
+checklist:
+  - Confirm the original finding is high or critical severity before creating a POC record.
+  - Identify the state-changing endpoint, HTTP method, and required parameters.
+  - Check whether a CSRF token, SameSite cookie policy, Origin check, or Referer check is present.
+  - Do not automatically execute destructive requests.
+  - Mark POST replay as manual-only unless the request is explicitly safe in the lab target.
+  - Record the affected URL, parameter list, expected action, and manual reproduction steps.
+evidence_fields:
+  - Original finding title
+  - Original location
+  - HTTP method
+  - State-changing action
+  - Token or header validation status
+  - Replay result
+  - Replay basis
+limitations:
+  - Does not perform authenticated CSRF verification without supplied session context.
+  - Does not automatically replay destructive POST requests.
+  - Does not bypass SameSite, Origin, Referer, CAPTCHA, or multi-factor protections.
+  - Requires human approval before any active verification attempt.
+recommendation: Add unpredictable per-request CSRF tokens, validate Origin or Referer for sensitive actions, use SameSite cookies, and require re-authentication for high-risk operations.

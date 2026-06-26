@@ -1,0 +1,51 @@
+name: cve_template
+module: poc_verify
+description: Safe CVE proof-of-concept template selection and verification checklist for local or course-lab targets.
+triggers:
+  - cve
+  - CVE-
+  - known vulnerability
+  - public advisory
+  - version fingerprint
+risk_level: high
+requires_confirmation: true
+inputs:
+  - high_findings
+  - target
+  - cve_id
+  - service_fingerprint
+outputs:
+  - structured_poc_record
+  - matched_cve_template
+  - replay_mode
+  - safe_verification_steps
+  - verification_conclusion
+policy:
+  allowed_targets:
+    - localhost
+    - 127.0.0.1
+    - course-lab
+  replay_mode: safe-get-or-manual-only
+  active_exploit: env-gated
+  active_exploit_env: POC_ALLOW_ACTIVE_EXP
+checklist:
+  - Extract CVE identifiers from the original finding, location, evidence, or advisory text.
+  - Match the CVE to a local safe verification template when one exists.
+  - Prefer version, banner, metadata, or harmless marker checks over exploit execution.
+  - Use manual-only mode for RCE, file write, command execution, authentication bypass, and destructive CVEs.
+  - Require POC_ALLOW_ACTIVE_EXP=1 before any active exploit path can be considered.
+  - Preserve source evidence and explain whether the result is confirmed, needs-review, or manual-only.
+evidence_fields:
+  - CVE ID
+  - Template name
+  - Replay mode
+  - Affected URL or service
+  - Fingerprint evidence
+  - Safe check result
+  - Manual approval status
+limitations:
+  - Does not automatically execute public EXP code by default.
+  - Does not run RCE, file-write, data-exfiltration, or destructive payloads unless explicitly environment-gated and approved.
+  - Does not verify authenticated CVEs without supplied credentials or session context.
+  - CVE template matching is advisory and must be reviewed against the actual service version.
+recommendation: Patch the affected component according to vendor guidance, restrict exposure of management interfaces, and keep CVE evidence tied to safe fingerprint or controlled lab-only checks.

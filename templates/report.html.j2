@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ model.title }}</title>
+  <style>
+    :root {
+      --bg: #f7f9fc;
+      --card: #ffffff;
+      --line: #d8e1ee;
+      --ink: #16202d;
+      --muted: #607084;
+      --warn: #8a530c;
+      --danger: #a12828;
+      --soft: #eef4fb;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, "Microsoft YaHei", sans-serif; color: var(--ink); background: var(--bg); }
+    main { max-width: 1240px; margin: 0 auto; padding: 28px 24px 48px; }
+    h1, h2, h3 { margin: 0 0 12px; }
+    h2 { margin-top: 28px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+    p { line-height: 1.6; margin: 0 0 8px; }
+    table { width: 100%; border-collapse: collapse; margin: 14px 0; table-layout: fixed; }
+    th, td { border: 1px solid var(--line); padding: 9px 10px; text-align: left; vertical-align: top; word-break: break-word; white-space: pre-wrap; }
+    th { background: var(--soft); }
+    .meta { color: var(--muted); margin-bottom: 6px; }
+    .grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+    .metric { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+    .metric strong { display: block; margin-top: 6px; font-size: 24px; }
+    .card, .finding-card, .module-card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin: 14px 0; }
+    .muted { color: var(--muted); }
+    .warning { background: #fff6e7; border-left: 4px solid #c27b18; padding: 10px 12px; margin: 10px 0; border-radius: 8px; }
+    .note { background: #f8fbff; border: 1px solid var(--line); border-radius: 10px; padding: 12px; margin: 10px 0; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 700; margin-right: 6px; }
+    .sev-critical, .sev-high { background: #fde9e9; color: var(--danger); }
+    .sev-medium { background: #fff2d8; color: var(--warn); }
+    .sev-low { background: #e8f0ff; color: #2450a5; }
+    .sev-info { background: #eef2f7; color: #4b5a6a; }
+    code, pre { background: #eef3f8; border-radius: 6px; padding: 2px 6px; white-space: pre-wrap; word-break: break-word; }
+    details { margin-top: 10px; }
+    ul { margin: 8px 0 0; padding-left: 20px; }
+    @media print {
+      @page { margin: 12mm; }
+      main { max-width: none; padding: 0; }
+      .metric, .card, .finding-card, .module-card, .warning, .note { break-inside: avoid; }
+      h2 { break-before: page; }
+    }
+  </style>
+</head>
+<body>
+<main>
+  <h1>{{ model.title }}</h1>
+  <p class="meta">目标：<code>{{ model.target }}</code></p>
+  <p class="meta">Profile：{{ model.profile_name or "未记录" }} / {{ model.profile_role or "未记录" }}</p>
+  <p class="meta">生成时间：{{ model.generated_at or "未记录" }}</p>
+
+  <h2>1. 审计报告摘要</h2>
+  <div class="grid">
+    <div class="metric">模块总数<strong>{{ model.summary.total_modules }}</strong></div>
+    <div class="metric">成功模块<strong>{{ model.summary.ok_modules }}</strong></div>
+    <div class="metric">失败模块<strong>{{ model.summary.failed_modules }}</strong></div>
+    <div class="metric">总发现<strong>{{ model.summary.total_findings }}</strong></div>
+    <div class="metric">已验证漏洞<strong>{{ model.summary.confirmed_vulnerabilities }}</strong></div>
+    <div class="metric">漏洞候选<strong>{{ model.summary.candidate_vulnerabilities }}</strong></div>
+    <div class="metric">待人工确认<strong>{{ model.summary.manual_review_items }}</strong></div>
+    <div class="metric">证据 / 范围项<strong>{{ model.summary.supporting_items }}</strong></div>
+  </div>
+
+  <h2>2. 运行时与编排</h2>
+  <div class="card">
+    <p><strong>编排引擎：</strong>{{ runtime.run_model_context.orchestration_engine or "未记录" }}</p>
+    <p><strong>Provider：</strong>{{ runtime.run_model_context.provider_name or "未记录" }}</p>
+    <p><strong>Provider 状态：</strong>{{ runtime.run_model_context.provider_status or "未记录" }}</p>
+    <p><strong>Readiness：</strong>{{ "ready" if runtime.run_model_context.readiness_ok else "not-ready" }}</p>
+    <p><strong>Orchestration Trace：</strong>{{ runtime.orchestration_trace | join(" -> ") if runtime.orchestration_trace else "无" }}</p>
+    {% if runtime.run_model_context.readiness_summary %}
+    <table>
+      <thead><tr><th>依赖</th><th>是否就绪</th><th>要求</th><th>说明</th></tr></thead>
+      <tbody>
+      {% for item in runtime.run_model_context.readiness_summary %}
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>{{ "是" if item.ok else "否" }}</td>
+          <td>{{ "必需" if item.required else "可选" }}</td>
+          <td>{{ item.message }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+
+  <h2>3. Skill 覆盖情况</h2>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Skill</th>
+          <th>模块</th>
+          <th>分组</th>
+          <th>状态</th>
+          <th>发现数</th>
+          <th>已确认漏洞</th>
+          <th>候选项</th>
+          <th>待人工项</th>
+          <th>证据完整</th>
+          <th>辅助 Skills</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for row in model.skill_coverage %}
+        <tr>
+          <td>{{ row.skill }}</td>
+          <td>{{ row.module }}</td>
+          <td>{{ row.group }}</td>
+          <td>{{ status_label(row.status) }}</td>
+          <td>{{ row.findings }}</td>
+          <td>{{ "是" if row.confirmed_vulnerability else "否" }}</td>
+          <td>{{ "是" if row.candidate_item else "否" }}</td>
+          <td>{{ "是" if row.manual_review_item else "否" }}</td>
+          <td>{{ "是" if row.evidence_complete else "否" }}</td>
+          <td>{{ row.support_skills | join(", ") if row.support_skills else "无" }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h2>4. 风险分布与证据提醒</h2>
+  <div class="card">
+    <table>
+      <thead><tr><th>严重级别</th><th>数量</th></tr></thead>
+      <tbody>
+      {% for severity, count in model.severity_distribution %}
+        <tr><td>{{ severity_label(severity) }}</td><td>{{ count }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% if model.evidence_warnings %}
+      {% for item in model.evidence_warnings %}
+        <div class="warning">
+          <strong>提醒</strong> | 模块=<code>{{ item.module }}</code> | 发现={{ item.finding_title }} | 位置={{ item.location }} | 缺少字段={{ item.missing_fields | join(", ") }}
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted">所有发现均通过证据完整性检查。</p>
+    {% endif %}
+  </div>
+
+  <h2>5. 发现列表</h2>
+  {% for severity, findings in model.findings_by_severity %}
+    <section>
+      <h3>{{ severity_label(severity) }}</h3>
+      {% if findings %}
+        {% for finding in findings %}
+          <div class="finding-card">
+            <div><span class="pill sev-{{ finding.severity }}">{{ severity_label(finding.severity) }}</span><strong>{{ finding.title }}</strong></div>
+            <p><strong>模块：</strong>{{ finding.module }} / {{ finding.skill }}</p>
+            <p><strong>位置：</strong>{{ finding.location }}</p>
+            <p><strong>类型：</strong>{{ kind_label(finding.kind) }}</p>
+            <p><strong>验证状态：</strong>{{ verification_status_label(finding.verification_status) }}</p>
+            <p><strong>已验证：</strong>{{ "是" if finding.verified else "否" }}</p>
+            {% if finding.kind == "verification_record" %}
+              {% if finding.metadata.source_title %}<p><strong>源发现：</strong>{{ finding.metadata.source_title }}</p>{% endif %}
+              {% if finding.metadata.source_location %}<p><strong>源位置：</strong>{{ finding.metadata.source_location }}</p>{% endif %}
+              {% if finding.metadata.replay_result %}<p><strong>Replay result：</strong>{{ finding.metadata.replay_result }}</p>{% endif %}
+              {% if finding.metadata.replay_mode %}<p><strong>Replay mode：</strong>{{ finding.metadata.replay_mode }}</p>{% endif %}
+              <p><strong>是否计入已验证漏洞：</strong>否</p>
+            {% endif %}
+            <p><strong>证据：</strong>{{ finding.evidence }}</p>
+            <p><strong>建议：</strong>{{ finding.recommendation }}</p>
+          </div>
+        {% endfor %}
+      {% else %}
+        <p class="muted">该严重级别下暂无发现。</p>
+      {% endif %}
+    </section>
+  {% endfor %}
+
+  <h2>6. 模块执行结果</h2>
+  {% for module in model.module_results %}
+    <section class="module-card">
+      <h3>{{ module.skill }} / {{ module.module }}</h3>
+      <p><strong>状态：</strong>{{ status_label(module.status) }} | <strong>分组：</strong>{{ module.group }}</p>
+      <p><strong>目标：</strong>{{ module.target }}</p>
+      <p><strong>辅助 Skills：</strong>{{ module.support_skills | join(", ") if module.support_skills else "无" }}</p>
+      <p><strong>预期产物：</strong>{{ module.expected_artifacts | join(", ") if module.expected_artifacts else "无" }}</p>
+      <p><strong>报告章节：</strong>{{ module.report_sections | join(", ") if module.report_sections else "无" }}</p>
+      <p><strong>时间：</strong>{{ module.started_at or "未记录" }}{% if module.finished_at %} -> {{ module.finished_at }}{% endif %}</p>
+      {% if module.error %}
+        <p><strong>模块错误：</strong>{{ module.error }}</p>
+      {% endif %}
+
+      {% if module.followup_context %}
+        <div class="card">
+          <strong>Follow-up 上下文</strong>
+          {% if module.followup_context.js_assets %}<p><strong>脚本清单：</strong>{{ module.followup_context.js_assets | join(", ") }}</p>{% endif %}
+          {% if module.followup_context.api_paths %}<p><strong>API 端点：</strong>{{ module.followup_context.api_paths | join(", ") }}</p>{% endif %}
+          {% if module.followup_context.route_prefixes %}<p><strong>Follow-up 路由：</strong>{{ module.followup_context.route_prefixes | join(", ") }}</p>{% endif %}
+          {% if module.followup_context.auth_paths %}<p><strong>授权敏感路径：</strong>{{ module.followup_context.auth_paths | join(", ") }}</p>{% endif %}
+          {% if module.followup_context.ast_overview %}<p><strong>AST 摘要：</strong>{{ module.followup_context.ast_overview }}</p>{% endif %}
+          {% if module.followup_context.consumers %}<p><strong>Follow-up 路由模块：</strong>{{ module.followup_context.consumers.keys() | list | join(", ") }}</p>{% endif %}
+        </div>
+      {% endif %}
+
+      {% if module.findings %}
+        <ul>
+          {% for finding in module.findings %}
+            <li>{{ finding.title }} / {{ kind_label(finding.kind) }} / {{ verification_status_label(finding.verification_status) }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="muted">该模块未输出任何发现。</p>
+      {% endif %}
+
+      {% if module.logs %}
+        <details>
+          <summary>模块日志与说明</summary>
+          <ul>
+            {% for line in module.logs %}
+              <li>{{ line }}</li>
+            {% endfor %}
+          </ul>
+        </details>
+      {% endif %}
+    </section>
+  {% endfor %}
+
+  <h2>7. Tool / Subagent / Follow-up 记录</h2>
+  <div class="card">
+    <h3>工具调用记录</h3>
+    {% if runtime.tool_call_records %}
+      <table>
+        <thead><tr><th>工具</th><th>状态</th><th>阶段</th><th>步骤</th><th>摘要</th></tr></thead>
+        <tbody>
+        {% for item in runtime.tool_call_records %}
+          <tr>
+            <td>{{ item.tool_name }}</td>
+            <td>{{ item.status }}</td>
+            <td>{{ item.phase }}</td>
+            <td>{{ item.step_id }}</td>
+            <td>{{ item.result_summary }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">当前没有工具调用记录。</p>
+    {% endif %}
+
+    <h3>子 Agent 结果</h3>
+    {% if runtime.subagents %}
+      <table>
+        <thead><tr><th>ID</th><th>状态</th><th>摘要</th><th>产物</th></tr></thead>
+        <tbody>
+        {% for item in runtime.subagents %}
+          <tr>
+            <td>{{ item.subagent_id }}</td>
+            <td>{{ item.status }}</td>
+            <td>{{ item.summary }}</td>
+            <td>{{ item.artifacts | join(", ") if item.artifacts else "无" }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">当前没有子 Agent 记录。</p>
+    {% endif %}
+
+    <h3>Follow-up 路由</h3>
+    {% if model.followup_summary %}
+      <table>
+        <thead><tr><th>生产模块</th><th>消费模块</th><th>上下文键</th></tr></thead>
+        <tbody>
+        {% for item in model.followup_summary %}
+          <tr>
+            <td>{{ item.producer }}</td>
+            <td>{{ item.consumers | join(", ") if item.consumers else "无" }}</td>
+            <td>{{ item.keys | join(", ") if item.keys else "无" }}</td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">当前没有 Follow-up 路由记录。</p>
+    {% endif %}
+  </div>
+
+  <h2>8. AI 实时建议</h2>
+  <div class="card">
+    {% if model.advice_timeline %}
+      {% for item in model.advice_timeline %}
+        <div class="note">
+          <strong>{{ item.title }}</strong>
+          <div>{{ item.content }}</div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted">当前没有记录 AI 实时建议。</p>
+    {% endif %}
+  </div>
+
+  <h2>9. AI 报告审阅</h2>
+  <div class="card">
+    {% if model.report_reviewer_notes %}
+      {% for item in model.report_reviewer_notes %}
+        <div class="note">
+          <strong>{{ item.level }}</strong>
+          <div>{{ item.message }}</div>
+        </div>
+      {% endfor %}
+    {% else %}
+      <p class="muted">当前没有 AI 报告审阅意见。</p>
+    {% endif %}
+  </div>
+
+  <h2>10. 附录 / 原始执行说明</h2>
+  {% if model.appendix %}
+    {% for entry in model.appendix %}
+      <section class="card">
+        <h3>{{ entry.module }}</h3>
+        {% for note in entry.notes %}
+          <pre>{{ note }}</pre>
+        {% endfor %}
+      </section>
+    {% endfor %}
+  {% else %}
+    <p class="muted">本次运行没有附录说明。</p>
+  {% endif %}
+</main>
+</body>
+</html>
