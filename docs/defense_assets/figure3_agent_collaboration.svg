@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980">
+  <defs>
+    <style>
+      .title { font: 700 34px 'Microsoft YaHei', Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 500 18px 'Microsoft YaHei', Arial, sans-serif; fill: #475569; }
+      .label { font: 700 24px 'Microsoft YaHei', Arial, sans-serif; fill: #0f172a; }
+      .mid { font: 700 20px 'Microsoft YaHei', Arial, sans-serif; fill: #0f172a; }
+      .tiny { font: 700 18px 'Microsoft YaHei', Arial, sans-serif; fill: #0f172a; }
+      .small { font: 500 18px 'Microsoft YaHei', Arial, sans-serif; fill: #334155; }
+      .mainBox { fill: #eff6ff; stroke: #3b82f6; stroke-width: 3; rx: 24; ry: 24; }
+      .childBoxA { fill: #ecfdf5; stroke: #34d399; stroke-width: 2; rx: 20; ry: 20; }
+      .childBoxB { fill: #f5f3ff; stroke: #a78bfa; stroke-width: 2; rx: 20; ry: 20; }
+      .childBoxC { fill: #fff7ed; stroke: #fb923c; stroke-width: 2; rx: 20; ry: 20; }
+      .childBoxD { fill: #fef2f2; stroke: #f87171; stroke-width: 2; rx: 20; ry: 20; }
+      .resultBox { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 18; ry: 18; }
+      .arrow { stroke: #64748b; stroke-width: 4; fill: none; marker-end: url(#arrowhead); }
+      .group { fill: none; stroke: #e2e8f0; stroke-width: 2; stroke-dasharray: 10 8; rx: 24; ry: 24; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <polygon points="0,0 10,5 0,10" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="980" fill="#f8fafc"/>
+  <text x="800" y="62" text-anchor="middle" class="title">图 3：主 Agent / 子 Agent 协作图</text>
+  <text x="800" y="96" text-anchor="middle" class="subtitle">主 Agent 负责全局控制，子 Agent 负责专项并行探索</text>
+
+  <rect x="90" y="140" width="1420" height="760" class="group"/>
+  <text x="120" y="178" class="small">Agent 协作结构</text>
+
+  <rect x="590" y="200" width="420" height="120" class="mainBox"/>
+  <text x="800" y="250" text-anchor="middle" class="label">主 Agent</text>
+  <text x="800" y="286" text-anchor="middle" class="small">综合黑盒主线推进 / 计划控制 / 结果汇总</text>
+
+  <rect x="110" y="430" width="320" height="140" class="childBoxA"/>
+  <text x="270" y="474" text-anchor="middle" class="tiny">
+    <tspan x="270" dy="0">backup-source-</tspan>
+    <tspan x="270" dy="24">audit-child</tspan>
+  </text>
+  <text x="270" y="532" text-anchor="middle" class="small">备份 / 源码 / 配置暴露审计</text>
+
+  <rect x="460" y="430" width="320" height="140" class="childBoxB"/>
+  <text x="620" y="474" text-anchor="middle" class="mid">
+    <tspan x="620" dy="0">js-derived-</tspan>
+    <tspan x="620" dy="26">api-child</tspan>
+  </text>
+  <text x="620" y="532" text-anchor="middle" class="small">前端 JS 派生接口与敏感信息</text>
+
+  <rect x="820" y="430" width="320" height="140" class="childBoxC"/>
+  <text x="980" y="474" text-anchor="middle" class="mid">
+    <tspan x="980" dy="0">xss-multi-</tspan>
+    <tspan x="980" dy="26">entry-child</tspan>
+  </text>
+  <text x="980" y="532" text-anchor="middle" class="small">多入口 XSS 探测与验证</text>
+
+  <rect x="1170" y="430" width="300" height="140" class="childBoxD"/>
+  <text x="1320" y="474" text-anchor="middle" class="mid">
+    <tspan x="1320" dy="0">auth-differential-</tspan>
+    <tspan x="1320" dy="26">child</tspan>
+  </text>
+  <text x="1320" y="532" text-anchor="middle" class="small">认证 / 授权 / 弱口令差异验证</text>
+
+  <rect x="600" y="690" width="400" height="110" class="resultBox"/>
+  <text x="800" y="736" text-anchor="middle" class="label">主 Agent 汇总结果</text>
+  <text x="800" y="770" text-anchor="middle" class="small">统一进入验证门禁与报告输出</text>
+
+  <path d="M700 320 C630 360, 400 390, 270 430" class="arrow"/>
+  <path d="M760 320 C720 360, 660 390, 620 430" class="arrow"/>
+  <path d="M840 320 C880 360, 940 390, 980 430" class="arrow"/>
+  <path d="M900 320 C990 360, 1220 390, 1320 430" class="arrow"/>
+
+  <path d="M270 570 C270 630, 560 650, 700 690" class="arrow"/>
+  <path d="M620 570 C650 620, 720 650, 760 690" class="arrow"/>
+  <path d="M980 570 C960 620, 900 650, 840 690" class="arrow"/>
+  <path d="M1320 570 C1280 630, 980 650, 900 690" class="arrow"/>
+
+  <rect x="140" y="820" width="1320" height="90" class="resultBox"/>
+  <text x="180" y="872" class="small">答辩讲法：主 Agent 负责全局控制和主线推进，子 Agent 负责不同专项方向的并行探索，最后再由主 Agent 汇总结果并进入验证门禁。</text>
+</svg>

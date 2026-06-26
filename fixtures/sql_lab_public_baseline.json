@@ -1,0 +1,54 @@
+{
+  "name": "sql_lab_public_baseline",
+  "target": "http://127.0.0.1:8765/",
+  "public_surfaces": [
+    {
+      "path": "/vul/sqli/sqli_id.php",
+      "method": "POST",
+      "parameter": "id",
+      "category": "numeric"
+    },
+    {
+      "path": "/vul/sqli/sqli_str.php",
+      "method": "GET",
+      "parameter": "name",
+      "category": "string"
+    },
+    {
+      "path": "/vul/sqli/sqli_search.php",
+      "method": "GET",
+      "parameter": "name",
+      "category": "search"
+    },
+    {
+      "path": "/vul/sqli/sqli_blind_b.php",
+      "method": "GET",
+      "parameter": "name",
+      "category": "blind_boolean"
+    },
+    {
+      "path": "/vul/sqli/sqli_blind_t.php",
+      "method": "GET",
+      "parameter": "name",
+      "category": "blind_time"
+    },
+    {
+      "path": "/vul/sqli/sqli_del.php",
+      "method": "GET",
+      "parameter": "id",
+      "category": "delete"
+    },
+    {
+      "path": "/vul/sqli/sqli_x.php",
+      "method": "GET",
+      "parameter": "name",
+      "category": "wrapped_string"
+    },
+    {
+      "path": "/vul/sqli/sqli_widebyte.php",
+      "method": "POST",
+      "parameter": "name",
+      "category": "encoding"
+    }
+  ]
+}

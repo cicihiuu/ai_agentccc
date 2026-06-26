@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <style>
+      .title { font: 700 34px 'Microsoft YaHei', Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 500 18px 'Microsoft YaHei', Arial, sans-serif; fill: #475569; }
+      .label { font: 700 24px 'Microsoft YaHei', Arial, sans-serif; fill: #0f172a; }
+      .small { font: 500 18px 'Microsoft YaHei', Arial, sans-serif; fill: #334155; }
+      .box { fill: #ffffff; stroke: #cbd5e1; stroke-width: 2; rx: 20; ry: 20; }
+      .boxBlue { fill: #eff6ff; stroke: #60a5fa; stroke-width: 2; rx: 20; ry: 20; }
+      .boxGreen { fill: #ecfdf5; stroke: #34d399; stroke-width: 2; rx: 20; ry: 20; }
+      .boxPurple { fill: #f5f3ff; stroke: #a78bfa; stroke-width: 2; rx: 20; ry: 20; }
+      .boxAmber { fill: #fffbeb; stroke: #f59e0b; stroke-width: 2; rx: 20; ry: 20; }
+      .arrow { stroke: #64748b; stroke-width: 4; fill: none; marker-end: url(#arrowhead); }
+      .group { fill: none; stroke: #e2e8f0; stroke-width: 2; stroke-dasharray: 10 8; rx: 24; ry: 24; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <polygon points="0,0 10,5 0,10" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f8fafc"/>
+  <text x="800" y="62" text-anchor="middle" class="title">图 1：总体架构图</text>
+  <text x="800" y="96" text-anchor="middle" class="subtitle">前端入口 - API - 服务调度 - 执行引擎 - Tool / Skill - 证据与报告</text>
+
+  <rect x="80" y="150" width="1440" height="650" class="group"/>
+  <text x="120" y="188" class="small">系统六层结构</text>
+
+  <rect x="120" y="260" width="230" height="110" class="boxBlue"/>
+  <text x="235" y="308" text-anchor="middle" class="label">Workbench 前端</text>
+  <text x="235" y="340" text-anchor="middle" class="small">index.html</text>
+
+  <rect x="430" y="260" width="190" height="110" class="boxBlue"/>
+  <text x="525" y="308" text-anchor="middle" class="label">API 层</text>
+  <text x="525" y="340" text-anchor="middle" class="small">app.py</text>
+
+  <rect x="700" y="260" width="210" height="110" class="boxGreen"/>
+  <text x="805" y="308" text-anchor="middle" class="label">服务层</text>
+  <text x="805" y="340" text-anchor="middle" class="small">AgentService</text>
+
+  <rect x="990" y="220" width="250" height="110" class="boxPurple"/>
+  <text x="1115" y="268" text-anchor="middle" class="label">执行引擎</text>
+  <text x="1115" y="300" text-anchor="middle" class="small">AgentLoop / StepExecutor</text>
+
+  <rect x="990" y="380" width="250" height="110" class="boxPurple"/>
+  <text x="1115" y="428" text-anchor="middle" class="label">决策层</text>
+  <text x="1115" y="460" text-anchor="middle" class="small">LLMDecisionEngine + RuleDecisionEngine</text>
+
+  <rect x="1320" y="220" width="200" height="110" class="boxAmber"/>
+  <text x="1420" y="268" text-anchor="middle" class="label">工具层</text>
+  <text x="1420" y="300" text-anchor="middle" class="small">ToolRegistry</text>
+
+  <rect x="1320" y="380" width="200" height="110" class="boxAmber"/>
+  <text x="1420" y="428" text-anchor="middle" class="label">Skill / 模块层</text>
+  <text x="1420" y="460" text-anchor="middle" class="small">SkillCatalog</text>
+
+  <rect x="930" y="580" width="340" height="120" class="box"/>
+  <text x="1100" y="628" text-anchor="middle" class="label">证据与状态模型</text>
+  <text x="1100" y="660" text-anchor="middle" class="small">Lead / VerificationRecord / VerifiedFinding / ScanState</text>
+
+  <rect x="1320" y="580" width="200" height="120" class="boxGreen"/>
+  <text x="1420" y="628" text-anchor="middle" class="label">报告层</text>
+  <text x="1420" y="660" text-anchor="middle" class="small">ReportBuilder</text>
+
+  <rect x="1320" y="740" width="200" height="90" class="boxBlue"/>
+  <text x="1420" y="790" text-anchor="middle" class="label">报告输出</text>
+  <text x="1420" y="816" text-anchor="middle" class="small">JSON / HTML / PDF</text>
+
+  <path d="M350 315 H430" class="arrow"/>
+  <path d="M620 315 H700" class="arrow"/>
+  <path d="M910 315 H990" class="arrow"/>
+  <path d="M1240 275 H1320" class="arrow"/>
+  <path d="M1240 435 H1320" class="arrow"/>
+  <path d="M1115 330 V380" class="arrow"/>
+  <path d="M1115 490 V580" class="arrow"/>
+  <path d="M1420 490 V580" class="arrow"/>
+  <path d="M1270 640 H1320" class="arrow"/>
+  <path d="M1420 700 V740" class="arrow"/>
+
+  <rect x="120" y="590" width="700" height="170" class="box"/>
+  <text x="150" y="632" class="label">答辩讲法</text>
+  <text x="150" y="672" class="small">• 前端负责参数输入和结果展示</text>
+  <text x="150" y="704" class="small">• API 和服务层负责扫描任务创建、计划生成与状态调度</text>
+  <text x="150" y="736" class="small">• 执行引擎负责分步推进，Tool / Skill 负责专项能力，最后只输出已验证结果</text>
+</svg>

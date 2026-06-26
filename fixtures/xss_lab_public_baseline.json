@@ -1,0 +1,77 @@
+{
+  "target": "http://127.0.0.1:8765/",
+  "public_surfaces": [
+    {
+      "path": "/vul/xss/xss.php",
+      "method": "GET",
+      "parameter": "",
+      "expected": "inventory"
+    },
+    {
+      "path": "/vul/xss/xss_reflected_get.php",
+      "method": "GET",
+      "parameter": "message",
+      "expected": "verified"
+    },
+    {
+      "path": "/vul/xss/xsspost/post_login.php",
+      "method": "POST",
+      "parameter": "message",
+      "expected": "verified"
+    },
+    {
+      "path": "/vul/xss/xss_stored.php",
+      "method": "POST",
+      "parameter": "message",
+      "expected": "verified"
+    },
+    {
+      "path": "/vul/xss/xss_dom.php",
+      "method": "GET",
+      "parameter": "text",
+      "expected": "verified"
+    },
+    {
+      "path": "/vul/xss/xss_dom_x.php",
+      "method": "GET",
+      "parameter": "text",
+      "expected": "verified"
+    },
+    {
+      "path": "/vul/xss/xssblind/xss_blind.php",
+      "method": "POST",
+      "parameter": "content",
+      "expected": "auxiliary"
+    },
+    {
+      "path": "/vul/xss/xss_01.php",
+      "method": "GET",
+      "parameter": "message",
+      "expected": "verified"
+    },
+    {
+      "path": "/vul/xss/xss_02.php",
+      "method": "GET",
+      "parameter": "message",
+      "expected": "verified"
+    },
+    {
+      "path": "/vul/xss/xss_03.php",
+      "method": "GET",
+      "parameter": "message",
+      "expected": "verified"
+    },
+    {
+      "path": "/vul/xss/xss_04.php",
+      "method": "GET",
+      "parameter": "message",
+      "expected": "verified"
+    },
+    {
+      "path": "/pkxss/index.php",
+      "method": "GET",
+      "parameter": "",
+      "expected": "auxiliary"
+    }
+  ]
+}

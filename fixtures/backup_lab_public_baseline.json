@@ -1,0 +1,45 @@
+{
+  "target": "http://127.0.0.1:8765/",
+  "module": "backup_audit_extended",
+  "expected_confirmed": [
+    {
+      "path": ".git/",
+      "evidence_kind": "git_repository_metadata",
+      "title_contains": "Git repository metadata"
+    },
+    {
+      "path": ".DS_Store",
+      "evidence_kind": "ds_store"
+    },
+    {
+      "path": "vul/.DS_Store",
+      "evidence_kind": "ds_store"
+    },
+    {
+      "path": "test/.DS_Store",
+      "evidence_kind": "ds_store"
+    },
+    {
+      "path": "wiki/.DS_Store",
+      "evidence_kind": "ds_store"
+    },
+    {
+      "path": "assets/css/bootstrap.min.css.bak",
+      "evidence_kind": "editor_backup"
+    },
+    {
+      "path": "Dockerfile",
+      "evidence_kind": "deployment_metadata"
+    }
+  ],
+  "expected_candidate": [
+    ".htpasswd",
+    ".htaccess"
+  ],
+  "expected_auxiliary": [
+    "README.md",
+    "LICENSE",
+    "install.php",
+    "inc/config.inc.php"
+  ]
+}

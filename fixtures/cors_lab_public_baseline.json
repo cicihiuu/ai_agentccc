@@ -1,0 +1,9 @@
+{
+  "target": "http://127.0.0.1:8765/",
+  "module": "cors_audit",
+  "expected_confirmed_count": 0,
+  "expected_log_markers": [
+    "Access-Control-Allow-Origin: not set",
+    "No obvious CORS misconfiguration was confirmed"
+  ]
+}

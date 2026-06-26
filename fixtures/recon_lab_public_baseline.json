@@ -1,0 +1,16 @@
+{
+  "target": "http://127.0.0.1:8765/",
+  "module": "recon",
+  "expected_followup_consumers": [
+    "js_audit",
+    "permission_bypass",
+    "sql_scan",
+    "ssrf_triage",
+    "weak_password",
+    "xss_triage"
+  ],
+  "expected_route_prefixes": [
+    "/vul"
+  ],
+  "expected_js_asset_path_fragment": "/assets/js/"
+}

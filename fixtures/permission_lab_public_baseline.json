@@ -1,0 +1,17 @@
+{
+  "target": "http://127.0.0.1:8765/",
+  "module": "permission_bypass",
+  "expected_verified": [
+    {
+      "path": "/vul/overpermission/op1/op1_mem.php",
+      "parameter": "username"
+    },
+    {
+      "path": "/vul/overpermission/op2/op2_admin_edit.php",
+      "parameter": ""
+    }
+  ],
+  "expected_followup_consumers": [
+    "poc_verify"
+  ]
+}

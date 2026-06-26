@@ -1,0 +1,60 @@
+{
+  "target": "http://127.0.0.1:8080/dvwa",
+  "generated_at": "2026-06-03T15:45:00+08:00",
+  "modules": [
+    {
+      "module": "recon",
+      "target": "http://127.0.0.1:8080/dvwa",
+      "status": "ok",
+      "findings": [
+        {
+          "title": "目标入口识别完成",
+          "severity": "info",
+          "location": "本地靶场首页与功能入口",
+          "evidence": "识别到登录入口、漏洞练习入口和包含参数的测试页面。",
+          "kind": "scope",
+          "verification_status": "informational",
+          "verified": false,
+          "recommendation": "后续模块围绕已识别入口做专项分析。",
+          "metadata": {}
+        }
+      ],
+      "logs": ["完成本地靶场入口确认。"],
+      "started_at": "2026-06-03T15:40:00+08:00",
+      "finished_at": "2026-06-03T15:41:00+08:00",
+      "error": ""
+    },
+    {
+      "module": "sql_scan",
+      "target": "http://127.0.0.1:8080/dvwa",
+      "status": "ok",
+      "findings": [
+        {
+          "title": "靶场 SQL 注入风险示例",
+          "severity": "high",
+          "location": "id 参数",
+          "evidence": "授权靶场中出现稳定响应差异，详情截图由成员 B 保存。",
+          "kind": "vulnerability",
+          "verification_status": "confirmed",
+          "verified": true,
+          "recommendation": "使用参数化查询，不拼接用户输入。",
+          "metadata": {}
+        }
+      ],
+      "logs": ["仅在本地授权靶场执行验证。"],
+      "started_at": "2026-06-03T15:41:00+08:00",
+      "finished_at": "2026-06-03T15:42:00+08:00",
+      "error": ""
+    },
+    {
+      "module": "poc_verify",
+      "target": "http://127.0.0.1:8080/dvwa",
+      "status": "skipped",
+      "findings": [],
+      "logs": ["POC 验证留到后续阶段。"],
+      "started_at": "",
+      "finished_at": "",
+      "error": "阶段 0-1 只完成接口设计，暂不执行 POC"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "manifest_version": "v2.0",
+  "name": "llm_vulnerability_loop_benchmark",
+  "description": "Acceptance manifest for the v2 LLM-driven vulnerability discovery loop.",
+  "categories": [
+    {
+      "name": "sql",
+      "expected_steps": ["sql_scan", "sql_bypass", "poc_verify"],
+      "expected_tools": ["discover_sql_candidates", "probe_sql_boolean", "generate_sql_bypass_plan", "run_sql_bypass_probe", "run_poc_in_docker"],
+      "expected_verified_categories": ["sql_injection"],
+      "max_fallbacks": 8,
+      "max_rounds": 14,
+      "required_report_fields": ["evidence_bundle", "proof_type", "source", "completeness_score"]
+    },
+    {
+      "name": "xss",
+      "expected_steps": ["js_audit", "xss_triage"],
+      "expected_children": ["xss-multi-entry-child"],
+      "expected_tools": ["extract_dom_sinks", "replay_request_with_mutation", "browser_action"],
+      "expected_verified_categories": ["xss", "xss_child_audit"],
+      "max_fallbacks": 14,
+      "max_rounds": 14,
+      "required_report_fields": ["evidence_bundle", "proof_type", "source", "completeness_score"]
+    },
+    {
+      "name": "auth",
+      "expected_steps": ["permission_bypass"],
+      "expected_children": ["auth-differential-child"],
+      "expected_tools": ["create_identity", "session_store", "same_request_different_session_replay", "compare_http_responses"],
+      "expected_verified_categories": ["authorization", "authorization_child_audit"],
+      "max_fallbacks": 16,
+      "max_rounds": 16,
+      "required_report_fields": ["evidence_bundle", "proof_type", "source", "completeness_score"]
+    },
+    {
+      "name": "ssrf",
+      "expected_steps": ["ssrf_triage"],
+      "expected_tools": ["create_callback_endpoint", "build_ssrf_probe_set", "poll_callback_events", "parser_confusion_probe"],
+      "expected_verified_categories": ["ssrf"],
+      "max_fallbacks": 6,
+      "max_rounds": 8,
+      "required_report_fields": ["evidence_bundle", "proof_type", "source", "completeness_score"]
+    },
+    {
+      "name": "backup_js_config",
+      "expected_steps": ["backup_audit_extended", "config_audit", "js_audit"],
+      "expected_children": ["backup-source-audit-child", "js-derived-api-child"],
+      "expected_tools": ["fetch_candidate_file", "parse_config", "grep_sensitive_patterns", "extract_js_endpoints", "extract_fetch_calls"],
+      "expected_verified_categories": ["backup_source_audit", "js_derived_api"],
+      "max_fallbacks": 15,
+      "max_rounds": 18,
+      "required_report_fields": ["evidence_bundle", "proof_type", "source", "completeness_score"]
+    }
+  ]
+}

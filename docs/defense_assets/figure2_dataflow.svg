@@ -1,0 +1,92 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="980" viewBox="0 0 1600 980">
+  <defs>
+    <style>
+      .title { font: 700 34px 'Microsoft YaHei', Arial, sans-serif; fill: #0f172a; }
+      .subtitle { font: 500 18px 'Microsoft YaHei', Arial, sans-serif; fill: #475569; }
+      .label { font: 700 24px 'Microsoft YaHei', Arial, sans-serif; fill: #0f172a; }
+      .mid { font: 700 20px 'Microsoft YaHei', Arial, sans-serif; fill: #0f172a; }
+      .small { font: 500 18px 'Microsoft YaHei', Arial, sans-serif; fill: #334155; }
+      .boxA { fill: #eff6ff; stroke: #60a5fa; stroke-width: 2; rx: 20; ry: 20; }
+      .boxB { fill: #ecfeff; stroke: #22d3ee; stroke-width: 2; rx: 20; ry: 20; }
+      .boxC { fill: #f5f3ff; stroke: #a78bfa; stroke-width: 2; rx: 20; ry: 20; }
+      .boxD { fill: #ecfdf5; stroke: #34d399; stroke-width: 2; rx: 20; ry: 20; }
+      .boxE { fill: #fffbeb; stroke: #f59e0b; stroke-width: 2; rx: 20; ry: 20; }
+      .arrow { stroke: #64748b; stroke-width: 4; fill: none; marker-end: url(#arrowhead); }
+      .group { fill: none; stroke: #e2e8f0; stroke-width: 2; stroke-dasharray: 10 8; rx: 24; ry: 24; }
+    </style>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <polygon points="0,0 10,5 0,10" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="980" fill="#f8fafc"/>
+  <text x="800" y="62" text-anchor="middle" class="title">图 2：主数据流图</text>
+  <text x="800" y="96" text-anchor="middle" class="subtitle">从用户输入到 verified-only 报告的端到端闭环</text>
+
+  <rect x="90" y="140" width="1420" height="720" class="group"/>
+  <text x="120" y="178" class="small">扫描生命周期</text>
+
+  <rect x="140" y="210" width="380" height="100" class="boxA"/>
+  <text x="330" y="250" text-anchor="middle" class="mid">
+    <tspan x="330" dy="0">1. 用户选择模式 / Profile /</tspan>
+    <tspan x="330" dy="28">Provider / 目标</tspan>
+  </text>
+
+  <rect x="580" y="210" width="240" height="100" class="boxA"/>
+  <text x="695" y="262" text-anchor="middle" class="label">2. POST /api/scans</text>
+
+  <rect x="890" y="210" width="290" height="100" class="boxB"/>
+  <text x="1040" y="248" text-anchor="middle" class="label">3. AgentService</text>
+  <text x="1040" y="278" text-anchor="middle" class="small">初始化 ScanState</text>
+
+  <rect x="1240" y="210" width="250" height="100" class="boxB"/>
+  <text x="1365" y="248" text-anchor="middle" class="label">4. 生成 plan</text>
+  <text x="1365" y="278" text-anchor="middle" class="small">与 step 列表</text>
+
+  <rect x="1180" y="390" width="320" height="110" class="boxC"/>
+  <text x="1340" y="426" text-anchor="middle" class="label">5. AgentLoop 推进执行</text>
+  <text x="1340" y="454" text-anchor="middle" class="small">
+    <tspan x="1340" dy="0">plan / step / step_replan /</tspan>
+    <tspan x="1340" dy="24">final_answer</tspan>
+  </text>
+
+  <rect x="820" y="390" width="290" height="110" class="boxC"/>
+  <text x="965" y="426" text-anchor="middle" class="label">6. StepExecutor 调工具</text>
+  <text x="965" y="456" text-anchor="middle" class="small">收集观察与响应</text>
+
+  <rect x="500" y="390" width="250" height="110" class="boxD"/>
+  <text x="645" y="428" text-anchor="middle" class="label">7. 形成 Lead 线索</text>
+  <text x="645" y="458" text-anchor="middle" class="small">候选发现进入线索池</text>
+
+  <rect x="170" y="390" width="270" height="110" class="boxD"/>
+  <text x="325" y="428" text-anchor="middle" class="label">8. 生成 VerificationRecord</text>
+  <text x="325" y="458" text-anchor="middle" class="small">记录验证过程</text>
+
+  <rect x="200" y="600" width="250" height="100" class="boxE"/>
+  <text x="325" y="640" text-anchor="middle" class="label">9. 通过门禁后形成</text>
+  <text x="325" y="674" text-anchor="middle" class="label">VerifiedFinding</text>
+
+  <rect x="540" y="600" width="300" height="100" class="boxE"/>
+  <text x="690" y="640" text-anchor="middle" class="label">10. ReportBuilder 生成</text>
+  <text x="690" y="674" text-anchor="middle" class="label">verified-only 报告</text>
+
+  <rect x="930" y="600" width="360" height="100" class="boxA"/>
+  <text x="1110" y="640" text-anchor="middle" class="label">11. JSON / HTML / PDF</text>
+  <text x="1110" y="674" text-anchor="middle" class="label">结果输出与页面展示</text>
+
+  <path d="M520 260 H580" class="arrow"/>
+  <path d="M820 255 H900" class="arrow"/>
+  <path d="M1180 255 H1260" class="arrow"/>
+  <path d="M1365 310 V390" class="arrow"/>
+  <path d="M1180 445 H1110" class="arrow"/>
+  <path d="M820 445 H750" class="arrow"/>
+  <path d="M500 445 H440" class="arrow"/>
+  <path d="M325 480 V600" class="arrow"/>
+  <path d="M450 650 H540" class="arrow"/>
+  <path d="M840 650 H930" class="arrow"/>
+
+  <rect x="180" y="770" width="1240" height="120" rx="20" ry="20" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+  <text x="220" y="815" class="label">答辩强调点</text>
+  <text x="220" y="852" class="small">• 先有线索，再有验证，最后才进入报告</text>
+  <text x="720" y="852" class="small">• 报告强调 verified-only，不是把所有扫描线索直接堆上去</text>
+</svg>

@@ -1,0 +1,13 @@
+{
+  "target": "http://127.0.0.1:8765/",
+  "module": "config_audit",
+  "expected_confirmed": [
+    {
+      "path": ".git/config",
+      "evidence_kind": "public_config_path"
+    }
+  ],
+  "expected_followup_consumers": [
+    "poc_verify"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "target": "http://127.0.0.1:8765/",
+  "module": "sql_bypass",
+  "expected_assessment_min": 4,
+  "expected_locations": [
+    "/vul/sqli/sqli_str.php",
+    "/vul/sqli/sqli_x.php",
+    "/vul/sqli/sqli_search.php",
+    "/vul/sqli/sqli_id.php"
+  ],
+  "expected_producer": "sql_bypass",
+  "expected_verified_count": 0
+}

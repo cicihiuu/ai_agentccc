@@ -1,0 +1,20 @@
+{
+  "target": "http://127.0.0.1:8765/",
+  "module": "ssrf_triage",
+  "expected_verified": [
+    {
+      "path": "/vul/ssrf/ssrf_curl.php",
+      "parameter": "url",
+      "source": "link_query"
+    },
+    {
+      "path": "/vul/ssrf/ssrf_fgc.php",
+      "parameter": "file",
+      "source": "link_query"
+    }
+  ],
+  "expected_followup_consumers": [
+    "poc_verify",
+    "ssrf_triage"
+  ]
+}

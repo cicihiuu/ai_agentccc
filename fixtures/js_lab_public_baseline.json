@@ -1,0 +1,18 @@
+{
+  "target": "http://127.0.0.1:0/",
+  "expected": {
+    "verified_categories": ["frontend_secret_exposure"],
+    "candidate_or_auxiliary_categories": [
+      "dom_source_sink",
+      "api_path_hint",
+      "dynamic_execution",
+      "prototype_pollution_candidate"
+    ],
+    "raw_secret": "fixture_secret_value_123456789"
+  },
+  "routes": {
+    "/": "entry page with external and inline JavaScript",
+    "/static/app.js": "hard-coded secret, API paths, DOM sink, eval, prototype mutation",
+    "/static/chunk.js": "imported same-origin script"
+  }
+}

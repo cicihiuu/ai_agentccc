@@ -1,0 +1,8 @@
+{
+  "target": "http://127.0.0.1:8765/",
+  "module": "jwt_audit",
+  "expected_confirmed_count": 0,
+  "expected_log_markers": [
+    "No JWT-like token was found in the fetched response body."
+  ]
+}
