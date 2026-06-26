@@ -1,0 +1,20 @@
+{
+  "name": "python_mvp",
+  "version": "1.0.0",
+  "description": "这是一个面向本地靶场与课程实验环境的 AI 安全智能体演示项目，包含：",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "espree": "11.2.0",
+    "js-beautify": "1.15.4"
+  }
+}
