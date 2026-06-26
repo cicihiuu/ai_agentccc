@@ -1,0 +1,35 @@
+# Jwt Risk Patterns
+
+## Purpose
+
+This reference supports the `jwt-audit` bundle. Use it when the core `SKILL.md` workflow needs a sharper checklist, a stronger false-positive boundary, or a clearer evidence rule for the current case.
+
+## Pattern Focus
+
+Primary pattern: JWT review.
+
+## Signals to Look For
+
+- alg none
+- Sensitive claims
+- Weak token structure
+- Auth header exposure
+
+## Review Steps
+
+1. Confirm that the current target artifact or response actually matches the pattern focus above.
+2. Separate direct evidence from loose naming similarity. A shared keyword alone is not enough.
+3. Preserve only the signals that materially change confidence, scope, or next-step routing.
+4. If this reference informs a follow-up module, keep the producer, route, or artifact provenance visible.
+
+## False-Positive Boundaries
+
+- A string match without supporting context is only a clue.
+- Content found only in comments, placeholders, or dead code should stay a low-confidence note unless another signal supports it.
+- If no stable location can be recorded, downgrade confidence and explain why.
+
+## Output Guidance
+
+- Prefer short evidence text built from concrete observations.
+- Keep the result tied to one path, route, parameter, script, or config location when possible.
+- Use this reference to improve precision, not to inflate finding count.

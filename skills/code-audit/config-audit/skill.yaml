@@ -1,0 +1,43 @@
+name: config-audit
+display_name: Configuration Exposure Audit
+kind: runnable
+group: code-audit
+module: config_audit
+description: "Review backup-derived configuration paths, secret-bearing files, debug toggles, and deployment defaults."
+when_to_use: "Use when backup or source artifacts reveal config entrypoints, environment files, or framework bootstraps."
+not_for:
+  - Do not treat every config string as exploitable without context.
+  - Do not rotate or modify secrets during review.
+triggers:
+  - config
+  - env
+  - settings
+  - debug
+  - secret
+risk_level: low
+supports_modules: []
+inputs:
+  - followup_context
+expected_artifacts:
+  - config_risk_findings
+  - secret_path_hints
+  - framework_entrypoints
+evidence_requirements:
+  required_fields:
+    - location
+    - evidence
+    - recommendation
+  style: "Tie each finding to a concrete config path, environment marker, or risky runtime default."
+execution_hints:
+  prefer_followup_paths: true
+  max_findings: 8
+guide_path: SKILL.md
+reference_paths:
+  - references/framework-config-patterns.md
+  - references/secret-and-debug-rules.md
+asset_paths: []
+report_contract:
+  sections:
+    - configuration-review
+    - module-results
+  include_logs: true

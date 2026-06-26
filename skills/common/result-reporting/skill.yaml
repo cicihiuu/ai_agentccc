@@ -1,0 +1,49 @@
+name: result-reporting
+display_name: Result Reporting
+kind: support
+group: common
+module: ""
+description: "Define final report sections, skill coverage tables, and evidence completeness rules for aggregated output."
+when_to_use: "Attach to every runnable skill so the final report can render coverage, expected artifacts, and verification-ready items consistently."
+not_for:
+  - Do not replace module evidence with summary-only prose.
+  - Do not allow final counts that cannot be traced back to concrete findings.
+triggers:
+  - report
+  - coverage
+  - result aggregation
+risk_level: low
+supports_modules:
+  - "*"
+inputs:
+  - scan_run
+expected_artifacts:
+  - coverage_table
+  - report_sections
+  - verification_ready_summary
+evidence_requirements:
+  required_fields:
+    - location
+    - evidence
+  style: "Every final report section should trace back to module-level findings, logs, or expected artifacts."
+execution_hints:
+  render_skill_coverage: true
+  show_expected_artifacts: true
+  include_appendix_notes: true
+guide_path: SKILL.md
+reference_paths:
+  - references/coverage-rules.md
+  - references/aggregation-rules.md
+asset_paths: []
+report_contract:
+  sections:
+    - report-summary
+    - target-and-profile
+    - skill-coverage
+    - severity-distribution
+    - evidence-completeness-warning
+    - findings-by-severity
+    - module-results
+    - follow-up-context-summary
+    - appendix
+  include_logs: true

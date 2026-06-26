@@ -1,0 +1,49 @@
+name: state-bootstrap
+display_name: State Bootstrap
+kind: runnable
+group: common
+module: state_bootstrap
+description: Establish reusable request state for targets that expose login forms, CSRF tokens, cookies, or authenticated navigation.
+when_to_use: "Use before scanning when the target may require login, hidden tokens, cookies, authenticated navigation, or post-login state preparation to expose testable surfaces."
+not_for:
+  - Do not brute force credentials.
+  - Do not bypass access controls outside configured lab credentials.
+triggers:
+  - login
+  - session
+  - csrf
+  - cookie
+  - authenticated
+risk_level: low
+supports_modules:
+  - recon
+  - sql_scan
+  - xss_triage
+  - ssrf_triage
+  - permission_bypass
+inputs:
+  - target_url
+  - profile_config.state_bootstrap
+expected_artifacts:
+  - request_context
+  - authenticated_urls
+  - state_actions
+  - session_cookie_summary
+evidence_requirements:
+  required_fields:
+    - location
+    - evidence
+    - verified
+  style: "Record whether authentication was established, cookie count, and authenticated entry count without exposing credentials."
+execution_hints:
+  allow_common_lab_credentials: true
+  preserve_hidden_fields: true
+  apply_post_login_state_actions: true
+guide_path: SKILL.md
+reference_paths: []
+asset_paths: []
+report_contract:
+  sections:
+    - state-bootstrap
+    - authenticated-crawl
+  include_logs: true

@@ -1,0 +1,44 @@
+name: js-audit
+display_name: Frontend JavaScript Audit
+kind: runnable
+group: code-audit
+module: js_audit
+description: "Audit JavaScript resources for secrets, backend paths, dangerous sinks, and risky browser-side logic."
+when_to_use: "Use when the target serves scripts, inline JavaScript, or front-end bundles that may expose routes, secrets, or unsafe sinks."
+not_for:
+  - Do not claim stored or reflected XSS solely from a sink match.
+  - Do not treat every exposed path as a vulnerability.
+triggers:
+  - javascript
+  - frontend
+  - dom
+  - script
+  - bundle
+risk_level: low
+supports_modules: []
+inputs:
+  - target_url
+  - followup_context
+expected_artifacts:
+  - script_inventory
+  - secret_candidates
+  - api_path_hints
+  - dangerous_sink_candidates
+evidence_requirements:
+  required_fields:
+    - location
+    - evidence
+  style: "Preserve the script location, matched sink or credential pattern, and at least one concrete code clue."
+execution_hints:
+  fetch_external_scripts: true
+  max_script_bytes: 160000
+guide_path: SKILL.md
+reference_paths:
+  - references/source-sink-overview.md
+  - references/frontend-evidence-rules.md
+asset_paths: []
+report_contract:
+  sections:
+    - frontend-review
+    - module-results
+  include_logs: true

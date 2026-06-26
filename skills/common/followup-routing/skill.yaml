@@ -1,0 +1,46 @@
+name: followup-routing
+display_name: Followup Routing
+kind: support
+group: common
+module: ""
+description: "Define how followup_context is cached, summarized, and exposed to downstream runnable skills."
+when_to_use: "Attach to runnable skills that either emit or consume upstream followup_context, especially backup-derived and verification-oriented flows."
+not_for:
+  - Do not let downstream modules mutate upstream findings in place.
+  - Do not use this support skill to hide provenance of recovered artifacts.
+triggers:
+  - followup
+  - routing
+  - context chain
+risk_level: low
+supports_modules:
+  - backup_audit_extended
+  - config_audit
+  - permission_bypass
+  - sql_scan
+  - js_audit
+  - xss_triage
+  - ssrf_triage
+  - poc_verify
+inputs:
+  - module_context
+expected_artifacts:
+  - followup_route_summary
+  - consumer_scope_note
+evidence_requirements:
+  required_fields:
+    - evidence
+  style: "When followup data affects scope, note the producer module and the concrete keys consumed downstream."
+execution_hints:
+  expose_followup_routes: true
+  preserve_producer_names: true
+guide_path: SKILL.md
+reference_paths:
+  - references/producer-consumer-contract.md
+  - references/routing-audit-trail.md
+asset_paths: []
+report_contract:
+  sections:
+    - followup-routing
+    - skill-coverage
+  include_logs: true

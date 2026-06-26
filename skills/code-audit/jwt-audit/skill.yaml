@@ -1,0 +1,42 @@
+name: jwt-audit
+display_name: JWT Audit
+kind: runnable
+group: code-audit
+module: jwt_audit
+description: "Inspect JWT usage for none-alg risks, weak claims, embedded secrets, and sensitive payload exposure."
+when_to_use: "Use when tokens, bearer headers, or JWT-like strings appear in API responses or front-end artifacts."
+not_for:
+  - Do not confuse unsigned demo tokens with production authentication unless evidence supports it.
+  - Do not leak recovered token material into logs beyond minimal proof.
+triggers:
+  - jwt
+  - token
+  - bearer
+  - alg
+  - claims
+risk_level: medium
+supports_modules: []
+inputs:
+  - target_url
+expected_artifacts:
+  - jwt_findings
+  - token_payload_note
+  - crypto_risk_note
+evidence_requirements:
+  required_fields:
+    - location
+    - evidence
+  style: "Record the JWT indicator, risky header or payload claim, and why it creates trust or disclosure risk."
+execution_hints:
+  decode_payload_if_present: true
+  redact_token_bodies: true
+guide_path: SKILL.md
+reference_paths:
+  - references/jwt-risk-patterns.md
+  - references/token-redaction-rules.md
+asset_paths: []
+report_contract:
+  sections:
+    - token-review
+    - module-results
+  include_logs: true

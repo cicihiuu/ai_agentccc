@@ -1,0 +1,43 @@
+name: evidence-normalization
+display_name: Evidence Normalization
+kind: support
+group: common
+module: ""
+description: "Normalize finding titles, locations, evidence strings, and report language so output stays consistent across runnable skills."
+when_to_use: "Attach to every runnable skill so findings use the same title style, evidence compactness, and recommendation quality bar."
+not_for:
+  - Do not overwrite meaningful module-specific evidence with generic text.
+  - Do not change severity without concrete reason.
+triggers:
+  - evidence
+  - normalize
+  - finding style
+risk_level: low
+supports_modules:
+  - "*"
+inputs:
+  - module_result
+expected_artifacts:
+  - normalized_findings
+evidence_requirements:
+  required_fields:
+    - title
+    - location
+    - evidence
+    - recommendation
+  style: "Use concise, reproducible wording and avoid empty or noisy evidence fields."
+execution_hints:
+  compress_whitespace: true
+  fill_missing_location_with_target: true
+  emit_completeness_warnings: true
+guide_path: SKILL.md
+reference_paths:
+  - references/finding-style.md
+  - references/evidence-quality-bar.md
+asset_paths: []
+report_contract:
+  sections:
+    - module-results
+    - evidence-completeness-warning
+    - findings-by-severity
+  include_logs: false

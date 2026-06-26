@@ -1,0 +1,43 @@
+name: browser-workflow
+display_name: Browser Workflow Support
+kind: support
+group: common
+module: ""
+description: "Provide browser-facing observation workflow, page inspection order, and screenshot guidance to runnable skills."
+when_to_use: "Attach to browser-facing runnable skills that inspect forms, DOM, redirects, or user-visible verification behavior."
+not_for:
+  - Do not treat this support skill as a standalone execution module.
+  - Do not use it as a substitute for protocol or source-code evidence.
+triggers:
+  - browser
+  - screenshot
+  - dom
+  - page review
+risk_level: low
+supports_modules:
+  - recon
+  - js_audit
+  - xss_triage
+  - weak_password
+  - poc_verify
+inputs:
+  - module_context
+expected_artifacts:
+  - page_observation_notes
+  - screenshot_targets
+evidence_requirements:
+  required_fields:
+    - location
+  style: Capture where a browser-visible clue appeared and what should be screenshotted or visually rechecked.
+execution_hints:
+  prefer_visual_confirmation: true
+guide_path: SKILL.md
+reference_paths:
+  - references/inspection-order.md
+  - references/screenshot-guidance.md
+asset_paths: []
+report_contract:
+  sections:
+    - browser-observation
+    - skill-coverage
+  include_logs: false
