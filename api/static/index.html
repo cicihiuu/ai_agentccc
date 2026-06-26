@@ -1,0 +1,1391 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI 安全 Agent 工作台</title>
+  <style>
+    :root { --bg:#f5f7fb; --card:#fff; --line:#d8e0eb; --ink:#18222f; --muted:#607084; --primary:#2563eb; --ok:#166534; --warn:#a16207; --danger:#b91c1c; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family:Arial,"Microsoft YaHei",sans-serif; background:var(--bg); color:var(--ink); overflow:hidden; }
+    .page { display:grid; grid-template-columns:minmax(300px,23vw) minmax(0,1fr); height:100vh; overflow:hidden; align-items:start; }
+    aside { padding:12px; border-right:1px solid var(--line); background:#f8fbff; position:sticky; top:0; height:100vh; overflow:auto; align-self:start; }
+    main { padding:14px; display:grid; gap:12px; height:100vh; overflow:auto; min-width:0; }
+    .stack,.grid { display:grid; gap:10px; }
+    .grid2 { display:grid; gap:12px; grid-template-columns:repeat(2,minmax(0,1fr)); }
+    .grid3 { display:grid; gap:12px; grid-template-columns:repeat(3,minmax(0,1fr)); }
+    .card,.item { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px; min-width:0; }
+    .item { padding:10px; }
+    h1,h2,h3 { margin:0 0 8px; }
+    h1 { font-size:28px; line-height:1.2; }
+    h2 { font-size:22px; }
+    h3 { font-size:18px; }
+    p { margin:0; line-height:1.5; }
+    label { display:grid; gap:6px; font-size:14px; }
+    input,select,button,textarea { font:inherit; }
+    input,select,textarea { width:100%; padding:8px 10px; border:1px solid #c9d4e3; border-radius:10px; background:#fff; }
+    button { padding:8px 12px; border:0; border-radius:10px; cursor:pointer; background:#e5e7eb; }
+    button.primary { background:var(--primary); color:#fff; }
+    button.ghost { background:#eaf1fb; color:#1d4ed8; }
+    button:disabled { opacity:.55; cursor:not-allowed; }
+    .actions { display:flex; flex-wrap:wrap; gap:10px; }
+    .muted { color:var(--muted); }
+    aside > .card:first-child p.muted { display:none; }
+    .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; margin-right:6px; background:#eef2ff; }
+    .pill.ok { background:#dcfce7; color:var(--ok); }
+    .pill.warn { background:#fff7ed; color:var(--warn); }
+    .pill.danger { background:#fee2e2; color:var(--danger); }
+    .pill.soft { background:#e2e8f0; color:#334155; }
+    .summary-grid { display:grid; gap:8px; grid-template-columns:repeat(auto-fit,minmax(120px,1fr)); }
+    .summary-card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:9px 10px; min-width:0; }
+    .summary-card strong { display:block; margin-top:4px; font-size:16px; overflow-wrap:anywhere; }
+    .list { display:grid; gap:8px; min-width:0; }
+    .empty { color:var(--muted); }
+    .kv { display:grid; grid-template-columns:100px minmax(0,1fr); gap:4px 10px; font-size:13px; margin-top:8px; }
+    .kv div:nth-child(odd) { color:var(--muted); }
+    .notice, .ok-note { white-space:pre-wrap; padding:12px; border-radius:10px; }
+    .notice { background:#fff8e8; border:1px solid #f2d4a2; color:var(--warn); }
+    .ok-note { background:#ecfdf3; border:1px solid #b7e6c7; color:var(--ok); }
+    .task-grid { display:grid; gap:8px; }
+    .task-card { display:grid; gap:4px; padding:9px 10px; border:1px solid var(--line); border-radius:12px; background:#fff; cursor:pointer; }
+    .task-card input { width:auto; margin:0; }
+    .task-card strong { display:flex; align-items:center; gap:8px; }
+    .task-card span { color:var(--muted); font-size:12px; line-height:1.45; }
+    .profile-summary { background:#f8fafc; border:1px solid var(--line); border-radius:10px; padding:8px 10px; font-size:13px; }
+    .profile-summary strong { display:block; margin-bottom:4px; overflow-wrap:anywhere; }
+    details.advanced { border:1px dashed var(--line); border-radius:12px; padding:10px; background:#fbfdff; }
+    details.advanced summary { cursor:pointer; color:#1d4ed8; font-weight:600; }
+    details.debug summary { cursor:pointer; font-weight:700; margin-bottom:10px; }
+    details.run-detail { grid-column:1/-1; background:#fbfdff; border:1px dashed var(--line); border-radius:12px; padding:9px 10px; }
+    details.run-detail summary { cursor:pointer; color:#1d4ed8; font-weight:700; }
+    .compact-list { max-height:340px; min-height:96px; overflow:auto; resize:vertical; padding-right:3px; }
+    .compact-list.tall { max-height:460px; }
+    .mini-card { border:1px solid var(--line); border-radius:12px; background:#fff; padding:0; overflow:hidden; }
+    .mini-card summary { list-style:none; cursor:pointer; padding:10px 12px; display:grid; gap:6px; }
+    .mini-card summary::-webkit-details-marker { display:none; }
+    .mini-card[open] summary { border-bottom:1px solid var(--line); background:#fbfdff; }
+    .mini-title { display:flex; align-items:center; gap:8px; min-width:0; }
+    .mini-title strong { overflow-wrap:anywhere; }
+    .mini-meta { color:var(--muted); font-size:12px; overflow-wrap:anywhere; }
+    .mini-body { padding:10px 12px 12px; }
+    .truncate { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .mono { font-family:Consolas,Menlo,monospace; }
+    .wrap { overflow-wrap:anywhere; word-break:break-word; }
+    pre { white-space:pre-wrap; word-break:break-word; background:#eef4fb; padding:10px; border-radius:8px; margin:8px 0 0; font-size:12px; }
+    @media (max-width:1080px) { body { overflow:auto; } .page { grid-template-columns:1fr; height:auto; overflow:visible; } aside { position:static; height:auto; overflow:visible; } main { height:auto; overflow:visible; } .grid2,.grid3 { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <aside class="stack">
+      <div class="card">
+        <h1>AI 安全 Agent 工作台</h1>
+      </div>
+      <div class="card stack">
+        <h2>选择任务</h2>
+        <div class="task-grid">
+          <label class="task-card">
+            <strong><input type="radio" name="taskMode" value="blackbox_pentest" data-bundle="full" checked>黑盒 Web 渗透</strong>
+            <span>全量入口探测、备份文件审计、配置泄露、SQL、XSS、SSRF、权限与 POC 验证。</span>
+          </label>
+          <label class="task-card">
+            <strong><input type="radio" name="taskMode" value="frontend_audit" data-bundle="js">前端 JS 审计</strong>
+            <span>JS 敏感信息检测、DOM/XSS 线索、API 派生入口、权限绕过 / IDOR 联动验证。</span>
+          </label>
+          <label class="task-card">
+            <strong><input type="radio" name="taskMode" value="sql_focus" data-bundle="sql">SQL 注入专项</strong>
+            <span>SQL 注入检测、WAF 绕过检测和 POC 闭环验证。</span>
+          </label>
+          <label class="task-card">
+            <strong><input type="radio" name="taskMode" value="exposure_audit" data-bundle="config">暴露面 / 备份配置审计</strong>
+            <span>资产与入口探测、备份文件审计、配置泄露审计、JS 敏感信息检测。</span>
+          </label>
+          <label class="task-card">
+            <strong><input type="radio" name="taskMode" value="auth_audit" data-bundle="permission">认证与权限审计</strong>
+            <span>权限绕过 / IDOR 检测、弱口令检测、JWT 安全检测、CORS 配置检测。</span>
+          </label>
+        </div>
+        <details class="advanced">
+          <summary>高级：兼容模块预设</summary>
+          <label>兼容模块
+            <select id="moduleBundle">
+              <option value="full">full | 黑盒 Web 渗透 / 全量扫描</option>
+              <option value="recon">recon | 资产与入口探测</option>
+              <option value="sql">sql | SQL 注入检测</option>
+              <option value="sql_bypass">sql_bypass | WAF 绕过检测</option>
+              <option value="xss">xss | XSS 漏洞检测</option>
+              <option value="ssrf">ssrf | SSRF 漏洞检测</option>
+              <option value="backup">backup | 备份文件审计</option>
+              <option value="config">config | 配置泄露审计</option>
+              <option value="cors">cors | CORS 配置检测</option>
+              <option value="jwt">jwt | JWT 安全检测</option>
+              <option value="js">js | JS 敏感信息检测</option>
+              <option value="permission">permission | 权限绕过 / IDOR 检测</option>
+              <option value="weak">weak | 弱口令检测</option>
+            </select>
+          </label>
+          <p class="muted">手动选择高级模块会取消上方任务模式；此时仅按模块预设执行，适合开发调试或旧接口兼容。</p>
+        </details>
+      </div>
+      <div class="card stack">
+        <h2>配置目标</h2>
+        <label>目标地址
+          <input id="target" value="">
+        </label>
+        <label>Agent Profile（引擎配置）
+          <select id="profile"></select>
+        </label>
+        <div id="profileSummary" class="profile-summary muted"><strong>黑盒 Web 渗透</strong>从入口探测到漏洞验证的全量扫描，适合靶场或未知 Web 目标。</div>
+        <label>模型服务商
+          <select id="provider">
+            <option value="deepseek">deepseek</option>
+            <option value="hunyuan">hunyuan</option>
+            <option value="ollama">ollama</option>
+          </select>
+        </label>
+        <label>模型
+          <select id="model"></select>
+        </label>
+        <label>接口地址
+          <input id="baseUrl" value="">
+        </label>
+        <div id="providerNotice" class="notice">正在加载引擎配置与依赖状态，请稍候。</div>
+        <div class="actions">
+          <button id="createBtn" class="primary">启动扫描</button>
+        </div>
+      </div>
+      <div class="card stack">
+        <h2>执行控制</h2>
+        <div class="actions">
+          <button id="stepBtn">执行一步</button>
+          <button id="continueBtn" class="primary">并发持续执行</button>
+          <button id="stopBtn">停止持续执行</button>
+          <button id="reportBtn" class="ghost">生成已验证报告</button>
+        </div>
+        <div id="actionStatus" class="notice">请先创建扫描。</div>
+        <div id="reportManifest" class="list"></div>
+      </div>
+    </aside>
+    <main>
+      <section class="card"><h2>执行概览</h2><div id="summaryCards" class="summary-grid"></div></section>
+      <section class="card"><h2>待人工确认</h2><div id="pendingConfirmations" class="list"></div></section>
+      <section class="grid2">
+        <div class="card"><h2>事件时间线</h2><div id="timeline" class="list compact-list"></div></div>
+        <div class="card"><h2>主 Agent / 子 Agent 状态树</h2><div id="agentTree" class="list compact-list"></div></div>
+      </section>
+      <section class="grid3">
+        <div class="card"><h2>已验证漏洞</h2><div id="findings" class="list compact-list tall"></div></div>
+        <div class="card"><h2>待验证线索</h2><div id="leadBoard" class="list compact-list tall"></div></div>
+        <div class="card"><h2>验证记录</h2><div id="verificationBoard" class="list compact-list tall"></div></div>
+      </section>
+      <section class="card"><h2>产物 / 报告</h2><div id="artifactBoard" class="list compact-list"></div></section>
+      <section class="card">
+        <details class="debug">
+          <summary>高级调试：决策轨迹、执行转录、原始状态</summary>
+          <section class="grid2">
+            <div class="item"><h2>决策轨迹</h2><div id="decisionBoard" class="list compact-list tall"></div></div>
+            <div class="item"><h2>原始状态</h2><div id="statusCards" class="list compact-list"></div></div>
+          </section>
+          <section class="item" style="margin-top:12px;"><h2>执行转录 / 子 Agent 转录</h2><div id="transcripts" class="list compact-list tall"></div></section>
+        </details>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const AUTO_REFRESH_MS = 3000;
+    const PROVIDER_DEFAULTS = {
+      deepseek: { model: "deepseek-v4-flash", base_url: "https://api.deepseek.com" },
+      hunyuan: { model: "hy3-preview", base_url: "https://tokenhub.tencentmaas.com/v1" },
+      ollama: { model: "qwen2.5-coder", base_url: "http://127.0.0.1:11434" },
+    };
+    const PROVIDER_MODELS = {
+      deepseek: ["deepseek-v4-flash", "deepseek-chat", "deepseek-reasoner"],
+      hunyuan: ["hy3-preview"],
+      ollama: ["qwen2.5-coder", "qwen2.5:7b", "llama3.1:8b"],
+    };
+    const TASK_MODE_LABELS = {
+      blackbox_pentest: "黑盒 Web 渗透",
+      frontend_audit: "前端 JS 审计",
+      sql_focus: "SQL 注入专项",
+      exposure_audit: "暴露面 / 备份配置审计",
+      auth_audit: "认证与权限审计",
+    };
+    const TASK_PROFILE_NAMES = {
+      blackbox_pentest: "blackbox_web",
+      frontend_audit: "frontend_audit",
+      sql_focus: "sql_focus",
+      exposure_audit: "exposure_audit",
+      auth_audit: "auth_audit",
+    };
+    const PROFILE_LABELS = {
+      blackbox_web: "黑盒 Web 渗透",
+      frontend_audit: "前端 JS 审计",
+      sql_focus: "SQL 注入专项",
+      exposure_audit: "暴露面 / 备份配置审计",
+      auth_audit: "认证与权限审计",
+    };
+    const PROFILE_SUMMARIES = {
+      blackbox_web: "全量编排入口探测、SQL/XSS/SSRF、备份配置、权限审计和 POC 验证。",
+      frontend_audit: "聚焦前端脚本、接口、敏感信息、DOM/XSS 线索和前端派生权限问题。",
+      sql_focus: "集中处理 SQL 注入候选、差异化响应、WAF 绕过评估和 POC 闭环。",
+      exposure_audit: "优先检查备份文件、源码快照、配置泄露、目录入口和前端泄露线索。",
+      auth_audit: "面向登录态、弱口令、JWT、CORS、IDOR 与权限绕过的访问控制审计。",
+    };
+    const TASK_MODE_SUMMARIES = {
+      blackbox_pentest: "从入口探测到漏洞验证的全量扫描，适合靶场或未知 Web 目标。",
+      frontend_audit: "聚焦脚本、接口、敏感信息和 DOM/XSS 线索。",
+      sql_focus: "集中验证参数注入、差异响应和绕过策略。",
+      exposure_audit: "检查备份文件、配置泄露、目录入口和前端泄露。",
+      auth_audit: "检查弱口令、JWT、CORS、IDOR 和权限绕过线索。",
+    };
+    const MODULE_BUNDLE_LABELS = {
+      full: "黑盒 Web 渗透",
+      recon: "资产与入口探测",
+      sql: "SQL 注入检测",
+      sql_bypass: "WAF 绕过检测",
+      xss: "XSS 漏洞检测",
+      ssrf: "SSRF 漏洞检测",
+      backup: "备份文件审计",
+      config: "配置泄露审计",
+      cors: "CORS 配置检测",
+      jwt: "JWT 安全检测",
+      js: "JS 敏感信息检测",
+      permission: "权限绕过 / IDOR 检测",
+      weak: "弱口令检测",
+    };
+    const STEP_LABELS = {
+      recon: "资产与入口探测",
+      backup_audit_extended: "备份文件审计",
+      config_audit: "配置泄露审计",
+      sql_scan: "SQL 注入检测",
+      sql_bypass: "WAF 绕过检测",
+      js_audit: "JS 敏感信息检测",
+      xss_triage: "XSS 漏洞检测",
+      ssrf_triage: "SSRF 漏洞检测",
+      permission_bypass: "权限绕过 / IDOR 检测",
+      cors_audit: "CORS 配置检测",
+      jwt_audit: "JWT 安全检测",
+      weak_password: "弱口令检测",
+      poc_verify: "POC 验证",
+    };
+    const STATUS_LABELS = {
+      ready: "就绪",
+      pending: "待执行",
+      queued: "排队中",
+      running: "执行中",
+      completed: "已完成",
+      failed: "失败",
+      blocked: "已阻塞",
+      verified: "已验证",
+      manual_required: "等待人工确认",
+      ok: "成功",
+      error: "错误",
+    };
+    const STAGE_LABELS = {
+      plan: "规划",
+      step: "执行",
+      step_replan: "重规划",
+      final_answer: "最终总结",
+    };
+    const CATEGORY_LABELS = {
+      sql_injection: "SQL 注入",
+      sql_bypass_assessment: "SQL 绕过评估",
+      frontend_secret_exposure: "前端敏感信息",
+      js_derived_api: "JS 派生接口",
+      js_auxiliary: "JS 辅助评估",
+      xss: "XSS",
+      ssrf: "SSRF",
+      authorization: "权限绕过",
+      cors: "CORS",
+      jwt: "JWT",
+      weak_password: "弱口令",
+      backup_source_audit: "备份审计",
+      config_exposure: "配置泄露",
+      manual_poc_case: "人工 POC",
+    };
+    const state = {
+      profilesLoaded: false,
+      profiles: [],
+      scanId: "",
+      lastSnapshot: null,
+      busy: false,
+      busyLabel: "",
+      continueRequested: false,
+      refreshTimer: null,
+      lastReportManifest: null,
+      openDetails: new Set()
+    };
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function emptyBlock(text) {
+      return `<div class="empty">${escapeHtml(text)}</div>`;
+    }
+
+    function pillClassByStatus(status) {
+      const value = String(status || "").toLowerCase();
+      if (["completed", "verified", "ok", "confirmed"].includes(value)) return "ok";
+      if (["failed", "error", "blocked"].includes(value)) return "danger";
+      if (["running", "pending", "queued", "manual_required"].includes(value)) return "warn";
+      return "soft";
+    }
+
+    function prettyJson(value, limit = 900) {
+      const text = JSON.stringify(value ?? {}, null, 2);
+      return text.length > limit ? `${text.slice(0, limit)}\n...` : text;
+    }
+
+    function shortId(value, size = 8) {
+      const text = String(value || "");
+      return text.length > size * 2 + 1 ? `${text.slice(0, size)}…${text.slice(-size)}` : text;
+    }
+
+    function detailKey(...parts) {
+      return parts.map(part => String(part ?? "").trim()).join("::");
+    }
+
+    function detailAttrs(key) {
+      const normalized = String(key || "");
+      return `data-detail-key="${escapeHtml(normalized)}"${state.openDetails.has(normalized) ? " open" : ""}`;
+    }
+
+    function displayStatus(value) {
+      const text = String(value || "").trim();
+      return STATUS_LABELS[text] || text || "-";
+    }
+
+    function displayStage(value) {
+      const text = String(value || "").trim();
+      return STAGE_LABELS[text] || text || "-";
+    }
+
+    function displayStepName(value) {
+      const text = String(value || "").trim();
+      return STEP_LABELS[text] || MODULE_BUNDLE_LABELS[text] || text || "-";
+    }
+
+    function displayCategory(value) {
+      const text = String(value || "").trim();
+      return CATEGORY_LABELS[text] || text || "-";
+    }
+
+    function displayTitle(value) {
+      let text = String(value || "").trim();
+      if (!text) return "-";
+      text = text.replace(/^SQL injection evidence candidate:\s*(.+)$/i, "SQL 注入证据候选参数：$1");
+      text = text.replace(/^SQL injection candidate parameter review$/i, "SQL 注入候选参数复核");
+      text = text.replace(/^SQL injection candidate inventory$/i, "SQL 注入候选参数清单");
+      text = text.replace(/^SQL bypass assessment:\s*(.+)$/i, "SQL 绕过评估：$1");
+      text = text.replace(/^SQL bypass assessment for parameter:\s*(.+)$/i, "SQL 绕过评估参数：$1");
+      text = text.replace(/^Manual POC case for\s*(.+)$/i, "人工 POC 验证用例：$1");
+      text = text.replace(/^Sandbox verified:\s*(.+)$/i, "沙箱验证通过：$1");
+      text = text.replace(/^JavaScript auxiliary assessment$/i, "JavaScript 辅助评估");
+      text = text.replace(/^Verified finding$/i, "已验证漏洞");
+      return text;
+    }
+
+    function displayText(value) {
+      let text = String(value || "").trim();
+      if (!text) return "-";
+      const replacements = [
+        [/^Use when forms, query parameters, or followup_context reveal database-backed endpoints, search flows, or known SQLi lab entrypoints\.$/i, "用于表单、查询参数或上游线索显示存在数据库交互入口时。"],
+        [/^Use after sql_scan has produced candidate or confirmed SQL injection evidence and bypass\/WAF behavior needs structured assessment\.$/i, "用于 SQL 注入检测后，对 WAF/绕过行为做结构化评估。"],
+        [/^Use when the target serves scripts, inline JavaScript, or front-end bundles that may expose routes, secrets, or unsafe sinks\.$/i, "用于目标存在脚本、内联 JS 或前端包，可能暴露路由、密钥或危险 sink 时。"],
+        [/^Use after recon when the target may expose \.git, \.env, archives, configs, or source snapshots that improve downstream coverage\.$/i, "用于侦察后检查 .git、.env、归档、配置或源码快照暴露。"],
+        [/^Use only after high-risk findings exist and the human gate allows verification work on the authorized lab target\.$/i, "用于高风险发现出现且人工门禁允许后执行受控 POC 验证。"],
+      ];
+      for (const [pattern, replacement] of replacements) text = text.replace(pattern, replacement);
+      return text;
+    }
+
+    function selectedTaskInput() {
+      return document.querySelector('input[name="taskMode"]:checked');
+    }
+
+    function selectedTaskMode() {
+      return selectedTaskInput()?.value || "";
+    }
+
+    function recommendedProfileName(taskMode) {
+      return TASK_PROFILE_NAMES[String(taskMode || "").trim()] || "";
+    }
+
+    function setProfileByName(profileName) {
+      const name = String(profileName || "").trim();
+      if (!name) return false;
+      const profile = state.profiles.find(item => item.name === name);
+      if (!profile) return false;
+      const select = document.getElementById("profile");
+      if (select.value === name) return true;
+      select.value = name;
+      syncLlmControlsFromProfile(profile, { force: true });
+      updateProviderNotice();
+      return true;
+    }
+
+    function syncRecommendedProfileFromTask() {
+      const profileName = recommendedProfileName(selectedTaskMode());
+      return setProfileByName(profileName);
+    }
+
+    function syncModuleBundleFromTask({ syncProfile = true } = {}) {
+      const input = selectedTaskInput();
+      if (!input) return;
+      const bundle = input?.dataset?.bundle || "full";
+      document.getElementById("moduleBundle").value = bundle;
+      if (syncProfile) syncRecommendedProfileFromTask();
+      updateProviderNotice();
+    }
+
+    function clearTaskModeForAdvancedModule() {
+      document.querySelectorAll('input[name="taskMode"]').forEach(input => {
+        input.checked = false;
+      });
+      updateProviderNotice();
+    }
+
+    function taskModeLabel(snapshot) {
+      const plan = snapshot?.plan || {};
+      const mode = String(plan.task_mode || "").trim();
+      const bundle = String(plan.module_bundle || "full").trim();
+      return plan.task_mode_label || TASK_MODE_LABELS[mode] || MODULE_BUNDLE_LABELS[bundle] || bundle;
+    }
+
+    function selectedTaskModeSummary() {
+      const mode = selectedTaskMode();
+      if (!mode) return "高级模块模式：按手动选择的模块执行，适合调试单项能力或兼容旧预设。";
+      return TASK_MODE_SUMMARIES[mode] || "当前任务模式：按所选范围执行扫描、验证和报告生成。";
+    }
+
+    function profileLabel(profile) {
+      const name = String(profile?.name || "").trim();
+      return PROFILE_LABELS[name] || name || "高级模块模式";
+    }
+
+    function profileSummaryText(profile) {
+      const name = String(profile?.name || "").trim();
+      return PROFILE_SUMMARIES[name] || String(profile?.description || "").trim() || selectedTaskModeSummary();
+    }
+
+    function sqlCandidateOf(item) {
+      const metadata = item?.metadata || {};
+      return metadata.sql_candidate || item?.sql_context || {};
+    }
+
+    function confirmedStrategiesOf(item) {
+      const candidate = sqlCandidateOf(item);
+      const strategies = candidate.confirmed_strategies || [];
+      return Array.isArray(strategies) ? strategies.filter(Boolean).map(String) : [];
+    }
+
+    function sqlDetailsHtml(item) {
+      const candidate = sqlCandidateOf(item);
+      const strategies = confirmedStrategiesOf(item);
+      if (!candidate.page_url && !candidate.page && !candidate.method && !candidate.parameter && !strategies.length) return "";
+      return `
+        <div>页面</div><div>${escapeHtml(candidate.page_url || candidate.page || "-")}</div>
+        <div>方法</div><div>${escapeHtml(candidate.method || "-")}</div>
+        <div>参数</div><div>${escapeHtml(candidate.parameter || "-")}</div>
+        <div>验证策略</div><div>${strategies.length ? strategies.map(escapeHtml).join("<br>") : "-"}</div>
+      `;
+    }
+
+    function sqlBypassDetailsHtml(item) {
+      const metadata = item?.metadata || {};
+      const signalSummary = metadata.signal_summary || item?.signal_summary || {};
+      const bestObservation = metadata.best_observation || item?.best_observation || {};
+      const bestStrategy = bestObservation?.strategy || metadata.strategy || {};
+      const wafProfile = metadata.waf_profile || item?.waf_profile || {};
+      const tampers = Array.isArray(metadata.tamper_recommendations) ? metadata.tamper_recommendations : [];
+      const signalTypes = Array.isArray(signalSummary.signal_types) ? signalSummary.signal_types.filter(Boolean).map(String) : [];
+      if (!signalTypes.length && !bestStrategy.name && !wafProfile.waf_type && !metadata.dbms_hint && !tampers.length) return "";
+      return `
+        <div>绕过策略</div><div>${escapeHtml(bestStrategy.name || signalSummary.best_strategy || "-")}</div>
+        <div>信号类型</div><div>${escapeHtml(signalSummary.best_signal_type || bestObservation.signal_type || (signalTypes.join(", ") || "-"))}</div>
+        <div>WAF</div><div>${escapeHtml(wafProfile.waf_type || "-")}</div>
+        <div>数据库指纹</div><div>${escapeHtml(metadata.dbms_hint || "-")}</div>
+        <div>变形建议</div><div>${tampers.length ? tampers.slice(0, 4).map(item => escapeHtml(item.name || "-")).join("<br>") : "-"}</div>
+      `;
+    }
+
+    function xssCandidateOf(item) {
+      const metadata = item?.metadata || {};
+      return metadata.xss_candidate || item?.xss_context || {};
+    }
+
+    function xssStrategiesOf(item) {
+      const candidate = xssCandidateOf(item);
+      const strategies = candidate.confirmed_strategies || [];
+      return Array.isArray(strategies) ? strategies.filter(Boolean).map(String) : [];
+    }
+
+    function xssDetailsHtml(item) {
+      const candidate = xssCandidateOf(item);
+      const strategies = xssStrategiesOf(item);
+      if (!candidate.page_url && !candidate.page && !candidate.method && !candidate.parameter && !candidate.context && !strategies.length) return "";
+      return `
+        <div>页面</div><div>${escapeHtml(candidate.page_url || candidate.page || "-")}</div>
+        <div>方法</div><div>${escapeHtml(candidate.method || "-")}</div>
+        <div>参数</div><div>${escapeHtml(candidate.parameter || "-")}</div>
+        <div>上下文</div><div>${escapeHtml(candidate.context || "-")}</div>
+        <div>验证策略</div><div>${strategies.length ? strategies.map(escapeHtml).join("<br>") : "-"}</div>
+      `;
+    }
+
+    function ssrfContextOf(item) {
+      const metadata = item?.metadata || {};
+      return metadata.ssrf_context || item?.ssrf_context || {};
+    }
+
+    function ssrfDetailsHtml(item) {
+      const context = ssrfContextOf(item);
+      const markers = Array.isArray(context.matched_markers) ? context.matched_markers.filter(Boolean).map(String) : [];
+      if (!context.page_url && !context.page && !context.request_url && !context.probe_url && !context.parameter) return "";
+      return `
+        <div>页面</div><div>${escapeHtml(context.page_url || context.page || "-")}</div>
+        <div>方法</div><div>${escapeHtml(context.method || "-")}</div>
+        <div>参数</div><div>${escapeHtml(context.parameter || "-")}</div>
+        <div>基线 URL</div><div>${escapeHtml(context.request_url || "-")}</div>
+        <div>探测 URL</div><div>${escapeHtml(context.probe_url || "-")}</div>
+        <div>探测类型</div><div>${escapeHtml(context.probe_type || "-")}</div>
+        <div>命中标记</div><div>${markers.length ? markers.map(escapeHtml).join("<br>") : "-"}</div>
+      `;
+    }
+
+    function backupContextOf(item) {
+      const metadata = item?.metadata || {};
+      return metadata.backup_context || item?.backup_context || {};
+    }
+
+    function backupDetailsHtml(item) {
+      const context = backupContextOf(item);
+      const members = Array.isArray(context.members) ? context.members.filter(Boolean).map(String) : [];
+      if (!context.path && !context.status_code && !context.artifact_type && !context.evidence_kind && !members.length) return "";
+      return `
+        <div>路径</div><div>${escapeHtml(context.path || "-")}</div>
+        <div>状态码</div><div>${escapeHtml(context.status_code || "-")}</div>
+        <div>产物类型</div><div>${escapeHtml(context.artifact_type || "-")}</div>
+        <div>证据类型</div><div>${escapeHtml(context.evidence_kind || "-")}</div>
+        <div>分组</div><div>${escapeHtml(context.group_key || "-")}</div>
+        <div>成员</div><div>${members.length ? members.map(escapeHtml).join("<br>") : "-"}</div>
+      `;
+    }
+
+    function jsContextOf(item) {
+      const metadata = item?.metadata || {};
+      return metadata.js_context || item?.js_context || {};
+    }
+
+    function jsDetailsHtml(item) {
+      const context = jsContextOf(item);
+      if (!context.script && !context.category && !context.sink && !context.source && !context.api_path && !context.masked_sample && !context.rule_id) return "";
+      return `
+        <div>脚本</div><div>${escapeHtml(context.script || "-")}</div>
+        <div>来源</div><div>${escapeHtml(context.origin || "-")}</div>
+        <div>JS 类别</div><div>${escapeHtml(context.category || "-")}</div>
+        <div>行号</div><div>${escapeHtml(context.line || "-")}</div>
+        <div>Source/Sink</div><div>${escapeHtml([context.source, context.sink].filter(Boolean).join(" -> ") || "-")}</div>
+        <div>API 路径</div><div>${escapeHtml(context.api_path || "-")}</div>
+        <div>规则</div><div>${escapeHtml(context.rule_id || "-")}</div>
+        <div>脱敏样本</div><div>${escapeHtml(context.masked_sample || "-")}</div>
+      `;
+    }
+
+    function configContextOf(item) {
+      const metadata = item?.metadata || {};
+      return metadata.config_context || item?.config_context || {};
+    }
+
+    function configDetailsHtml(item) {
+      const context = configContextOf(item);
+      if (!context.path && !context.evidence_kind && !(Array.isArray(context.frameworks) && context.frameworks.length) && !(Array.isArray(context.db_hosts) && context.db_hosts.length)) return "";
+      const frameworks = Array.isArray(context.frameworks) ? context.frameworks.filter(Boolean).map(String) : [];
+      const dbHosts = Array.isArray(context.db_hosts) ? context.db_hosts.filter(Boolean).map(String) : [];
+      return `
+        <div>路径</div><div>${escapeHtml(context.path || "-")}</div>
+        <div>证据类型</div><div>${escapeHtml(context.evidence_kind || "-")}</div>
+        <div>框架</div><div>${frameworks.length ? frameworks.map(escapeHtml).join("<br>") : "-"}</div>
+        <div>数据库主机</div><div>${dbHosts.length ? dbHosts.map(escapeHtml).join("<br>") : "-"}</div>
+      `;
+    }
+
+    function corsContextOf(item) {
+      const metadata = item?.metadata || {};
+      return metadata.cors_context || item?.cors_context || {};
+    }
+
+    function corsDetailsHtml(item) {
+      const context = corsContextOf(item);
+      if (!context.url && !context.probe_origin && !context.allow_origin && !context.allow_credentials && !context.risk) return "";
+      return `
+        <div>URL</div><div>${escapeHtml(context.url || "-")}</div>
+        <div>探测 Origin</div><div>${escapeHtml(context.probe_origin || "-")}</div>
+        <div>ACAO</div><div>${escapeHtml(context.allow_origin || "-")}</div>
+        <div>ACAC</div><div>${escapeHtml(context.allow_credentials || "-")}</div>
+        <div>风险</div><div>${escapeHtml(context.risk || "-")}</div>
+      `;
+    }
+
+    function permissionContextOf(item) {
+      const metadata = item?.metadata || {};
+      return metadata.permission_context || item?.permission_context || {};
+    }
+
+    function probeSummaryHtml(probe, label) {
+      if (!probe || typeof probe !== "object") return "";
+      const markers = Array.isArray(probe.sensitive_markers) ? probe.sensitive_markers.join(", ") : "";
+      return `${label}: HTTP ${probe.status_code || "-"}, 长度=${probe.length || "-"}, 标记=${markers || "无"}`;
+    }
+
+    function permissionDetailsHtml(item) {
+      const context = permissionContextOf(item);
+      if (!context.url && !context.type && !context.parameter) return "";
+      const probes = [
+        probeSummaryHtml(context.anonymous, "anonymous"),
+        probeSummaryHtml(context.high, "high"),
+        probeSummaryHtml(context.low, "low"),
+        probeSummaryHtml(context.baseline, "baseline"),
+        probeSummaryHtml(context.mutated, "mutated")
+      ].filter(Boolean);
+      return `
+        <div>权限 URL</div><div>${escapeHtml(context.url || "-")}</div>
+        <div>类型</div><div>${escapeHtml(context.type || "-")}</div>
+        <div>方法</div><div>${escapeHtml(context.method || "-")}</div>
+        <div>参数</div><div>${escapeHtml(context.parameter || "-")}</div>
+        <div>基线值</div><div>${escapeHtml(context.baseline_value || "-")}</div>
+        <div>变异值</div><div>${escapeHtml(context.mutated_value || "-")}</div>
+        <div>差异探测</div><div>${probes.length ? probes.map(escapeHtml).join("<br>") : "-"}</div>
+      `;
+    }
+
+    function weakPasswordContextOf(item) {
+      const metadata = item?.metadata || {};
+      return metadata.weak_password_context || item?.weak_password_context || {};
+    }
+
+    function weakPasswordDetailsHtml(item) {
+      const context = weakPasswordContextOf(item);
+      if (!context.page_url && !context.action && !context.username) return "";
+      return `
+        <div>登录页</div><div>${escapeHtml(context.page_url || "-")}</div>
+        <div>提交地址</div><div>${escapeHtml(context.action || "-")}</div>
+        <div>方法</div><div>${escapeHtml(context.method || "-")}</div>
+        <div>用户名字段</div><div>${escapeHtml(context.username_field || "-")}</div>
+        <div>密码字段</div><div>${escapeHtml(context.password_field || "-")}</div>
+        <div>命中用户</div><div>${escapeHtml(context.username || "-")}</div>
+        <div>脱敏密码</div><div>${escapeHtml(context.masked_password || "-")}</div>
+        <div>最终 URL</div><div>${escapeHtml(context.final_url || "-")}</div>
+      `;
+    }
+
+    function jwtContextOf(item) {
+      const metadata = item?.metadata || {};
+      return metadata.jwt_context || item?.jwt_context || {};
+    }
+
+    function jwtDetailsHtml(item) {
+      const context = jwtContextOf(item);
+      const keys = Array.isArray(context.payload_keys) ? context.payload_keys.filter(Boolean).map(String) : [];
+      if (!context.url && !context.issue && !context.alg && !keys.length) return "";
+      return `
+        <div>URL</div><div>${escapeHtml(context.url || "-")}</div>
+        <div>问题</div><div>${escapeHtml(context.issue || "-")}</div>
+        <div>Alg</div><div>${escapeHtml(context.alg || "-")}</div>
+        <div>类型</div><div>${escapeHtml(context.typ || "-")}</div>
+        <div>签名</div><div>${escapeHtml(String(context.signature_present))}</div>
+        <div>Payload 字段</div><div>${keys.length ? keys.map(escapeHtml).join("<br>") : "-"}</div>
+      `;
+    }
+
+    function vulnerabilityDetailsHtml(item) {
+      return `${sqlDetailsHtml(item)}${sqlBypassDetailsHtml(item)}${xssDetailsHtml(item)}${ssrfDetailsHtml(item)}${backupDetailsHtml(item)}${jsDetailsHtml(item)}${configDetailsHtml(item)}${corsDetailsHtml(item)}${permissionDetailsHtml(item)}${weakPasswordDetailsHtml(item)}${jwtDetailsHtml(item)}`;
+    }
+
+    function isDockerDuplicateFinding(item, findingIds) {
+      const metadata = item?.metadata || {};
+      return metadata.verification_source === "docker_poc"
+        && metadata.source_finding_id
+        && findingIds.has(metadata.source_finding_id);
+    }
+
+    function visibleVerifiedFindings(snapshot) {
+      const findings = snapshot.verified_findings || [];
+      const findingIds = new Set(findings.map(item => item.finding_id).filter(Boolean));
+      return findings.filter(item => !isDockerDuplicateFinding(item, findingIds));
+    }
+
+    function isAuxiliaryAssessment(item) {
+      const text = `${item?.method || ""}\n${item?.category || ""}\n${item?.location || ""}\n${item?.evidence || ""}\n${item?.proof || ""}\n${item?.source || ""}\n${JSON.stringify(item?.metadata || {})}`.toLowerCase();
+      return text.includes("strategy_assessment")
+        || text.includes("assessment only")
+        || text.includes("not a standalone confirmed vulnerability")
+        || text.includes("sql_bypass")
+        || text.includes("xss_auxiliary")
+        || text.includes("blind_or_oob_xss")
+        || text.includes("xss_platform")
+        || text.includes("backup_auxiliary")
+        || text.includes("js_auxiliary")
+        || text.includes("api_path_hint")
+        || text.includes("dom_source_sink")
+        || text.includes("dynamic_execution")
+        || text.includes("prototype_pollution_candidate")
+        || text.includes("secret_identifier_candidate");
+    }
+
+    function groupedBlocks(groups) {
+      return groups
+        .filter(group => group.items.length)
+        .map(group => `<div class="item"><strong>${escapeHtml(group.title)}</strong></div>${group.items.join("")}`)
+        .join("");
+    }
+
+    function hasPendingConfirmations(snapshot) {
+      return Array.isArray(snapshot?.pending_confirmations) && snapshot.pending_confirmations.length > 0;
+    }
+
+    async function api(path, options = {}) {
+      const response = await fetch(path, {
+        headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+        ...options
+      });
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || `HTTP ${response.status}`);
+      }
+      return response.json();
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => window.setTimeout(resolve, ms));
+    }
+
+    function stopAutoRefresh() {
+      if (state.refreshTimer) {
+        clearTimeout(state.refreshTimer);
+        state.refreshTimer = null;
+      }
+    }
+
+    function shouldAutoRefresh(snapshot) {
+      if (!state.scanId || !snapshot || state.busy) return false;
+      return !["completed", "failed", "blocked"].includes(String(snapshot.status || "").toLowerCase());
+    }
+
+    function scheduleAutoRefresh(snapshot) {
+      stopAutoRefresh();
+      if (!shouldAutoRefresh(snapshot)) return;
+      state.refreshTimer = window.setTimeout(() => {
+        refreshSnapshot(true).catch(() => {});
+      }, AUTO_REFRESH_MS);
+    }
+
+    function setBusy(busy, label = "") {
+      state.busy = busy;
+      state.busyLabel = busy ? label : "";
+      syncControlButtons(state.lastSnapshot);
+      renderActionStatus(state.lastSnapshot);
+      if (busy) stopAutoRefresh();
+      else scheduleAutoRefresh(state.lastSnapshot);
+    }
+
+    function syncControlButtons(snapshot) {
+      const hasProfile = state.profilesLoaded && Boolean(document.getElementById("profile").value);
+      const hasScan = Boolean(state.scanId);
+      const isComplete = ["completed", "failed", "blocked"].includes(String(snapshot?.status || "").toLowerCase());
+      const waitingApproval = hasPendingConfirmations(snapshot);
+      document.getElementById("createBtn").disabled = state.busy || !hasProfile;
+      document.getElementById("stepBtn").disabled = state.busy || !hasScan || isComplete || waitingApproval;
+      document.getElementById("continueBtn").disabled = state.busy || !hasScan || isComplete || waitingApproval;
+      document.getElementById("stopBtn").disabled = !state.continueRequested;
+      document.getElementById("reportBtn").disabled = state.busy || !hasScan;
+    }
+
+    function renderActionStatus(snapshot) {
+      const box = document.getElementById("actionStatus");
+      const latestEvent = (snapshot?.events || []).slice(-1)[0];
+      const latest = latestEvent ? ` | 最近事件=${displayStage(latestEvent.stage)} / ${displayText(latestEvent.message || latestEvent.kind || "")}` : "";
+      if (state.busy) {
+        box.className = "ok-note";
+        box.textContent = `正在执行：${state.busyLabel}${latest}`;
+        return;
+      }
+      if (!snapshot) {
+        box.className = "notice";
+        box.textContent = state.profilesLoaded ? "请先创建扫描。" : "正在加载引擎配置与依赖状态，请稍候。";
+        return;
+      }
+      if (hasPendingConfirmations(snapshot)) {
+        box.className = "notice";
+        box.textContent = `扫描=${shortId(snapshot.scan_id)} | 任务=${taskModeLabel(snapshot)} | 状态=${displayStatus(snapshot.status)} | 等待人工确认=${snapshot.pending_confirmations.length}${latest}`;
+        return;
+      }
+      box.className = "ok-note";
+      box.textContent = `扫描=${shortId(snapshot.scan_id)} | 任务=${taskModeLabel(snapshot)} | 阶段=${displayStage(snapshot.stage)} | 状态=${displayStatus(snapshot.status)}${latest}`;
+    }
+
+    function providerDefaultsOf(provider) {
+      return PROVIDER_DEFAULTS[String(provider || "").toLowerCase()] || PROVIDER_DEFAULTS.deepseek;
+    }
+
+    function providerModelsOf(provider) {
+      return PROVIDER_MODELS[String(provider || "").toLowerCase()] || PROVIDER_MODELS.deepseek;
+    }
+
+    function syncLlmControlsFromProfile(profile, { force = false } = {}) {
+      const providerSelect = document.getElementById("provider");
+      const modelSelect = document.getElementById("model");
+      const baseUrlInput = document.getElementById("baseUrl");
+      const resolvedProvider = String(profile?.provider_name || providerSelect.value || "deepseek").toLowerCase();
+      const defaults = providerDefaultsOf(resolvedProvider);
+      const models = providerModelsOf(resolvedProvider);
+      providerSelect.value = resolvedProvider;
+      modelSelect.innerHTML = models.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
+      const targetModel = String(profile?.model_id || "").trim() || defaults.model;
+      if (!models.includes(targetModel)) {
+        modelSelect.innerHTML += `<option value="${escapeHtml(targetModel)}">${escapeHtml(targetModel)}</option>`;
+      }
+      if (force || !modelSelect.value) modelSelect.value = targetModel;
+      if (force || !baseUrlInput.value.trim()) baseUrlInput.value = String(profile?.base_url || "").trim() || defaults.base_url;
+    }
+
+    function syncLlmControlsFromProvider({ forceBaseUrl = true } = {}) {
+      const provider = document.getElementById("provider").value;
+      const modelSelect = document.getElementById("model");
+      const baseUrlInput = document.getElementById("baseUrl");
+      const defaults = providerDefaultsOf(provider);
+      const models = providerModelsOf(provider);
+      modelSelect.innerHTML = models.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join("");
+      modelSelect.value = defaults.model;
+      if (forceBaseUrl) baseUrlInput.value = defaults.base_url;
+      updateProviderNotice();
+    }
+
+    async function loadProfiles() {
+      const profiles = await api("/api/profiles");
+      state.profiles = profiles;
+      const select = document.getElementById("profile");
+      select.innerHTML = profiles.map(item => `<option value="${escapeHtml(item.name)}">${escapeHtml(item.name)}</option>`).join("");
+      state.profilesLoaded = select.options.length > 0;
+      select.disabled = profiles.length <= 1;
+      if (profiles[0]) {
+        const recommended = recommendedProfileName(selectedTaskMode());
+        const selectedProfile = profiles.find(item => item.name === recommended) || profiles.find(item => item.name === "blackbox_web") || profiles[0];
+        select.value = selectedProfile.name;
+        syncLlmControlsFromProfile(selectedProfile, { force: true });
+      } else {
+        syncLlmControlsFromProvider();
+      }
+      updateProviderNotice();
+      syncControlButtons(state.lastSnapshot);
+      renderActionStatus(state.lastSnapshot);
+    }
+
+    function updateProviderNotice() {
+      const profile = state.profiles.find(item => item.name === document.getElementById("profile").value) || state.profiles[0];
+      const box = document.getElementById("providerNotice");
+      const profileSummary = document.getElementById("profileSummary");
+      if (!profile) {
+        box.textContent = "尚未加载到 v2 profile。";
+        profileSummary.textContent = "尚未加载到 Agent Profile。";
+        return;
+      }
+      const provider = document.getElementById("provider").value || profile.provider_name || "-";
+      const model = document.getElementById("model").value || profile.model_id || "-";
+      const baseUrl = document.getElementById("baseUrl").value.trim() || profile.base_url || "-";
+      const providerMessage = state.lastSnapshot?.provider_status?.message ? ` | 状态=${state.lastSnapshot.provider_status.message}` : "";
+      const summary = profileSummaryText(profile);
+      profileSummary.innerHTML = `<strong>${escapeHtml(profileLabel(profile))}</strong>${escapeHtml(summary)}`;
+      box.textContent = summary + providerMessage;
+    }
+
+    async function createScan() {
+      const taskMode = selectedTaskMode();
+      if (taskMode) syncModuleBundleFromTask({ syncProfile: false });
+      const payload = {
+        target: document.getElementById("target").value.trim(),
+        profile_name: document.getElementById("profile").value,
+        task_mode: taskMode,
+        module_bundle: document.getElementById("moduleBundle").value,
+        provider_name: document.getElementById("provider").value,
+        model_id: document.getElementById("model").value,
+        base_url: document.getElementById("baseUrl").value.trim()
+      };
+      const snapshot = await api("/api/scans", { method: "POST", body: JSON.stringify(payload) });
+      state.scanId = snapshot.scan_id;
+      state.lastReportManifest = null;
+      renderSnapshot(snapshot);
+    }
+
+    async function refreshSnapshot(silent = false) {
+      if (!state.scanId) return;
+      const snapshot = await api(`/api/scans/${state.scanId}`);
+      renderSnapshot(snapshot);
+      if (!silent) renderActionStatus(snapshot);
+    }
+
+    async function runAction(kind) {
+      if (!state.scanId) return;
+      const snapshot = await api(`/api/scans/${state.scanId}/${kind}`, { method: "POST" });
+      renderSnapshot(snapshot);
+    }
+
+    async function runContinuousSteps() {
+      if (!state.scanId) return;
+      state.continueRequested = true;
+      setBusy(true, "并发持续执行：按依赖图批量推进主 Agent step");
+      let current = state.lastSnapshot;
+      let done = false;
+      try {
+        const continuePromise = api(`/api/scans/${state.scanId}/continue`, { method: "POST" })
+          .then(snapshot => {
+            current = snapshot;
+            done = true;
+            renderSnapshot(snapshot);
+            return snapshot;
+          })
+          .catch(err => {
+            done = true;
+            throw err;
+          });
+        while (state.continueRequested && !done) {
+          await sleep(1000);
+          await refreshSnapshot(true);
+        }
+        await continuePromise;
+      } finally {
+        state.continueRequested = false;
+        setBusy(false);
+      }
+    }
+
+    async function createReport() {
+      if (!state.scanId) return;
+      const manifest = await api(`/api/scans/${state.scanId}/report`, { method: "POST" });
+      state.lastReportManifest = manifest;
+      renderReportManifest(manifest);
+      await refreshSnapshot(true);
+    }
+
+    async function resolveManualConfirmation(verificationId, action) {
+      if (!state.scanId || !verificationId) return;
+      const snapshot = await api(`/api/scans/${state.scanId}/${action}/${verificationId}`, {
+        method: "POST",
+        body: JSON.stringify({})
+      });
+      renderSnapshot(snapshot);
+    }
+
+    function collectLeads(snapshot) {
+      const leads = [];
+      for (const [stepId, step] of Object.entries(snapshot.step_states || {})) {
+        for (const lead of step.leads || []) leads.push({ ...lead, source: `step:${stepId}` });
+      }
+      for (const [subId, sub] of Object.entries(snapshot.subagents || {})) {
+        for (const lead of sub.leads || []) leads.push({ ...lead, source: `subagent:${sub.task?.name || subId}` });
+      }
+      return leads;
+    }
+
+    function collectVerification(snapshot) {
+      const records = [];
+      for (const [stepId, step] of Object.entries(snapshot.step_states || {})) {
+        for (const record of step.verification_records || []) records.push({ ...record, source: `step:${stepId}` });
+      }
+      for (const [subId, sub] of Object.entries(snapshot.subagents || {})) {
+        for (const record of sub.verification_records || []) records.push({ ...record, source: `subagent:${sub.task?.name || subId}` });
+      }
+      return records;
+    }
+
+    function collectDecisions(snapshot) {
+      const records = [];
+      for (const [stepId, step] of Object.entries(snapshot.step_states || {})) {
+        for (const record of step.decision_records || []) records.push({ ...record, scope: `step:${stepId}` });
+      }
+      for (const [subId, sub] of Object.entries(snapshot.subagents || {})) {
+        for (const record of sub.decision_records || []) records.push({ ...record, scope: `subagent:${sub.task?.name || subId}` });
+      }
+      return records.reverse();
+    }
+
+    function renderSummary(snapshot) {
+      const steps = Object.values(snapshot.step_states || {});
+      const subagents = Object.values(snapshot.subagents || {});
+      const reportReady = snapshot.report_manifest?.html_url || state.lastReportManifest?.html_url ? "已生成" : "未生成";
+      const cards = [
+        ["任务模式", taskModeLabel(snapshot)],
+        ["状态", `${displayStage(snapshot.stage)} / ${displayStatus(snapshot.status)}`],
+        ["步骤", `${steps.filter(x => x.status === "completed").length}/${steps.length}`],
+        ["已验证", `${visibleVerifiedFindings(snapshot).length}`],
+        ["待人工确认", `${(snapshot.pending_confirmations || []).length}`],
+        ["报告状态", reportReady]
+      ];
+      const details = `
+        <details class="run-detail" ${detailAttrs(detailKey("summary", "run-detail"))}>
+          <summary>运行详情</summary>
+          <div class="kv">
+            <div>扫描 ID</div><div class="mono wrap" title="${escapeHtml(snapshot.scan_id)}">${escapeHtml(shortId(snapshot.scan_id, 10))}</div>
+            <div>兼容模块</div><div>${escapeHtml(snapshot.plan?.module_bundle || "full")}</div>
+            <div>模型服务商</div><div>${escapeHtml(snapshot.provider_status?.provider || snapshot.profile?.provider_name || "-")}</div>
+            <div>模型</div><div>${escapeHtml(snapshot.provider_status?.model || snapshot.profile?.model_id || "-")}</div>
+            <div>服务状态</div><div>${escapeHtml(displayStatus(snapshot.provider_status?.status || "-"))}</div>
+            <div>子 Agent</div><div>${escapeHtml(`${subagents.filter(x => x.status === "completed").length}/${subagents.length}`)}</div>
+            <div>兜底次数</div><div>${escapeHtml(`${snapshot.fallback_metrics?.step_llm_fallback_count || 0}/${snapshot.fallback_metrics?.subagent_llm_fallback_count || 0}`)}</div>
+          </div>
+        </details>`;
+      document.getElementById("summaryCards").innerHTML =
+        cards.map(([title, value]) => `<div class="summary-card"><div class="muted">${escapeHtml(title)}</div><strong>${escapeHtml(value)}</strong></div>`).join("") + details;
+    }
+
+    function renderPendingConfirmations(snapshot) {
+      const items = Array.isArray(snapshot.pending_confirmations) ? snapshot.pending_confirmations : [];
+      document.getElementById("pendingConfirmations").innerHTML = items.length ? items.map(item => `
+        <div class="item">
+          <div><span class="pill warn">${escapeHtml(displayStatus(item.status || "pending"))}</span><span class="pill soft">${escapeHtml(displayStepName(item.step_name || item.step_id || "step"))}</span><strong>${escapeHtml(displayTitle(item.title || item.summary || item.verification_id))}</strong></div>
+          <div class="kv">
+            <div>验证 ID</div><div>${escapeHtml(item.verification_id || "-")}</div>
+            <div>线索 ID</div><div>${escapeHtml(item.lead_id || "-")}</div>
+            <div>位置</div><div>${escapeHtml(item.location || "-")}</div>
+            <div>来源漏洞</div><div>${escapeHtml(item.source_finding_id || "-")}</div>
+            <div>摘要</div><div class="wrap">${escapeHtml(displayText(item.summary || "-"))}</div>
+          </div>
+          <div class="actions" style="margin-top:10px;">
+            <button class="primary" onclick="resolveManualConfirmation('${escapeHtml(item.verification_id || "")}', 'approve')">确认通过</button>
+            <button onclick="resolveManualConfirmation('${escapeHtml(item.verification_id || "")}', 'deny')">驳回</button>
+          </div>
+        </div>
+      `).join("") : emptyBlock("暂无待人工确认项。");
+    }
+
+    function renderTimeline(snapshot) {
+      const rows = (snapshot.events || []).slice(-20).reverse();
+      document.getElementById("timeline").innerHTML = rows.length ? rows.map(item => `
+        <div class="item wrap">
+          <div><span class="pill ${pillClassByStatus(item.stage)}">${escapeHtml(displayStage(item.stage))}</span><span class="pill soft">${escapeHtml(displayText(item.kind))}</span></div>
+          <div style="margin-top:6px;">${escapeHtml(displayText(item.message || "-"))}</div>
+          <div class="muted" style="margin-top:6px;">${escapeHtml(item.created_at || "")}</div>
+        </div>
+      `).join("") : emptyBlock("暂无时间线事件。");
+    }
+
+    function renderAgentTree(snapshot) {
+      const steps = snapshot.plan?.steps || [];
+      const subagents = snapshot.subagents || {};
+      document.getElementById("agentTree").innerHTML = steps.length ? steps.map(step => {
+        const stateItem = snapshot.step_states?.[step.step_id] || {};
+        const children = (stateItem.spawned_subagents || []).map(id => subagents[id]).filter(Boolean);
+        const key = detailKey("agent-step", step.step_id);
+        return `
+          <details class="mini-card" ${detailAttrs(key)}>
+            <summary>
+              <div class="mini-title"><span class="pill ${pillClassByStatus(stateItem.status)}">${escapeHtml(displayStatus(stateItem.status || "pending"))}</span><strong>${escapeHtml(displayStepName(step.name))}</strong></div>
+              <div class="mini-meta">循环 ${escapeHtml(String(stateItem.iterations || 0))} / 工具 ${escapeHtml(String(stateItem.tool_calls || 0))} / 决策 ${escapeHtml(String((stateItem.decision_records || []).length))}</div>
+            </summary>
+            <div class="mini-body">
+            <div class="kv">
+              <div>目标</div><div class="wrap">${escapeHtml(displayText(step.goal || "-"))}</div>
+              <div>循环</div><div>${escapeHtml(String(stateItem.iterations || 0))} / ${escapeHtml(String(stateItem.tool_calls || 0))}</div>
+              <div>决策数</div><div>${escapeHtml(String((stateItem.decision_records || []).length))}</div>
+              <div>验证缺口</div><div class="wrap">${escapeHtml(displayText(stateItem.verification_gap || "-"))}</div>
+            </div>
+            ${(children.map(child => `
+              <div class="item" style="margin-top:10px;">
+                <div><span class="pill ${pillClassByStatus(child.status)}">${escapeHtml(displayStatus(child.status))}</span><span class="pill soft">子 Agent</span><strong>${escapeHtml(displayTitle(child.task?.name || child.subagent_id))}</strong></div>
+                <div class="kv">
+                  <div>目标</div><div class="wrap">${escapeHtml(displayText(child.task?.goal || "-"))}</div>
+                  <div>循环</div><div>${escapeHtml(String(child.iterations || 0))} / ${escapeHtml(String(child.tool_calls || 0))}</div>
+                  <div>决策数</div><div>${escapeHtml(String((child.decision_records || []).length))}</div>
+                  <div>完成原因</div><div class="wrap">${escapeHtml(displayText(child.done_reason || "-"))}</div>
+                </div>
+              </div>
+            `).join(""))}
+            </div>
+          </details>
+        `;
+      }).join("") : emptyBlock("暂无 Agent 状态。");
+    }
+
+    function renderFindings(snapshot) {
+      const findings = visibleVerifiedFindings(snapshot);
+      document.getElementById("findings").innerHTML = findings.length ? findings.map(item => {
+        const key = detailKey("finding", item.finding_id || item.verification_id || item.title, item.location);
+        return `
+        <details class="mini-card" ${detailAttrs(key)}>
+          <summary>
+            <div class="mini-title"><span class="pill ${pillClassByStatus(item.severity)}">${escapeHtml(item.severity)}</span><span class="pill soft">${escapeHtml(displayCategory(item.category))}</span><strong>${escapeHtml(displayTitle(item.title))}</strong></div>
+            <div class="mini-meta">${escapeHtml(item.location || "-")}</div>
+          </summary>
+          <div class="mini-body">
+          <div class="kv">
+            <div>位置</div><div class="wrap">${escapeHtml(item.location || "-")}</div>
+            ${vulnerabilityDetailsHtml(item)}
+            <div>影响</div><div class="wrap">${escapeHtml(displayText(item.impact || "-"))}</div>
+            <div>验证 ID</div><div class="mono">${escapeHtml(item.verification_id || "-")}</div>
+          </div>
+          <pre>${escapeHtml(displayText(item.evidence || "-"))}</pre>
+          </div>
+        </details>
+      `;
+      }).join("") : emptyBlock("暂无已验证漏洞。");
+    }
+
+    function renderLeads(snapshot) {
+      const leads = collectLeads(snapshot);
+      const candidateBlocks = [];
+      const auxiliaryBlocks = [];
+      for (const item of leads) {
+        const key = detailKey("lead", item.source, item.lead_id || item.title, item.location);
+        const block = `
+          <details class="mini-card" ${detailAttrs(key)}>
+            <summary>
+              <div class="mini-title"><span class="pill ${pillClassByStatus(item.severity)}">${escapeHtml(item.severity)}</span><span class="pill soft">${escapeHtml(displayCategory(item.category))}</span><strong>${escapeHtml(displayTitle(item.title))}</strong></div>
+              <div class="mini-meta">${escapeHtml(item.source)} / ${escapeHtml(item.location || "-")}</div>
+            </summary>
+            <div class="mini-body">
+            <div class="kv">
+              <div>来源</div><div>${escapeHtml(item.source)}</div>
+              <div>位置</div><div class="wrap">${escapeHtml(item.location || "-")}</div>
+              ${vulnerabilityDetailsHtml(item)}
+              <div>下一步</div><div class="wrap">${escapeHtml((item.next_steps || []).map(displayText).join(" -> ") || "-")}</div>
+            </div>
+            <pre>${escapeHtml(displayText(item.evidence || item.rationale || "-"))}</pre>
+            </div>
+          </details>
+        `;
+        if (isAuxiliaryAssessment(item)) auxiliaryBlocks.push(block);
+        else candidateBlocks.push(block);
+      }
+      document.getElementById("leadBoard").innerHTML = leads.length ? groupedBlocks([
+        { title: "候选 / 未验证线索", items: candidateBlocks },
+        { title: "辅助评估", items: auxiliaryBlocks }
+      ]) : emptyBlock("暂无待验证线索。");
+    }
+
+    function renderVerification(snapshot) {
+      const records = collectVerification(snapshot);
+      const verifiedBlocks = [];
+      const candidateBlocks = [];
+      const auxiliaryBlocks = [];
+      for (const item of records) {
+        const key = detailKey("verification", item.source, item.verification_id || item.lead_id || item.method);
+        const block = `
+          <details class="mini-card" ${detailAttrs(key)}>
+            <summary>
+              <div class="mini-title"><span class="pill ${pillClassByStatus(item.status)}">${escapeHtml(displayStatus(item.status))}</span><span class="pill soft">${escapeHtml(item.method)}</span><strong>${escapeHtml(shortId(item.verification_id || item.lead_id || item.method, 10))}</strong></div>
+              <div class="mini-meta">${escapeHtml(item.source)} / ${escapeHtml(item.lead_id || "-")}</div>
+            </summary>
+            <div class="mini-body">
+            <div class="kv">
+              <div>来源</div><div>${escapeHtml(item.source)}</div>
+              <div>线索 ID</div><div class="mono">${escapeHtml(item.lead_id || "-")}</div>
+              ${vulnerabilityDetailsHtml(item)}
+              <div>证明</div><div class="wrap">${escapeHtml(displayText(item.proof || "-"))}</div>
+            </div>
+            <pre>${escapeHtml(displayText(item.summary || item.proof || "-"))}</pre>
+            </div>
+          </details>
+        `;
+        if (isAuxiliaryAssessment(item)) auxiliaryBlocks.push(block);
+        else if (String(item.status || "").toLowerCase() === "verified") verifiedBlocks.push(block);
+        else candidateBlocks.push(block);
+      }
+      document.getElementById("verificationBoard").innerHTML = records.length ? groupedBlocks([
+        { title: "已验证记录", items: verifiedBlocks },
+        { title: "候选 / 人工记录", items: candidateBlocks },
+        { title: "辅助评估", items: auxiliaryBlocks }
+      ]) : emptyBlock("暂无验证记录。");
+    }
+
+    function renderDecisions(snapshot) {
+      const records = collectDecisions(snapshot);
+      document.getElementById("decisionBoard").innerHTML = records.length ? records.slice(0, 40).map(item => {
+        const key = detailKey("decision", item.scope, item.decision_id || item.created_at || item.tool_name);
+        return `
+        <details class="mini-card" ${detailAttrs(key)}>
+          <summary>
+            <div class="mini-title"><span class="pill ${pillClassByStatus(item.source)}">${escapeHtml(item.source)}</span><span class="pill soft">${escapeHtml(item.scope)}</span><strong>${escapeHtml(displayStepName(item.tool_name))}</strong></div>
+            <div class="mini-meta">进度 ${escapeHtml(String(item.progress_score ?? 0))} / 技能 ${escapeHtml(item.skill_name || "-")}</div>
+          </summary>
+          <div class="mini-body">
+          <div class="kv">
+            <div>假设</div><div class="wrap">${escapeHtml(displayText(item.hypothesis || "-"))}</div>
+            <div>理由</div><div class="wrap">${escapeHtml(displayText(item.rationale || "-"))}</div>
+            <div>模型服务</div><div>${escapeHtml(item.provider || "-")} / ${escapeHtml(item.model || "-")}</div>
+            <div>兜底原因</div><div class="wrap">${escapeHtml(displayText(item.fallback_reason || "-"))}</div>
+            <div>技能</div><div>${escapeHtml(item.skill_name || "-")}</div>
+            <div>验证目标</div><div class="wrap">${escapeHtml(displayText(item.verification_goal || "-"))}</div>
+            <div>进度</div><div>${escapeHtml(String(item.progress_score ?? 0))} | 停滞=${escapeHtml(String(item.stagnation_rounds ?? 0))} | 重复=${escapeHtml(String(item.duplicate_action_ratio ?? 0))}</div>
+          </div>
+          <pre>${escapeHtml(prettyJson(item.arguments || {}, 300))}</pre>
+          </div>
+        </details>
+      `;
+      }).join("") : emptyBlock("暂无决策轨迹。");
+    }
+
+    function renderArtifacts(snapshot) {
+      const blocks = [];
+      for (const artifact of snapshot.artifacts || []) {
+        blocks.push(`
+          <div class="item">
+            <div><span class="pill soft">${escapeHtml(artifact.kind || "artifact")}</span><strong>${escapeHtml(artifact.name || artifact.artifact_id)}</strong></div>
+            <div class="kv">
+              <div>ID</div><div class="mono">${escapeHtml(artifact.artifact_id || "-")}</div>
+              <div>路径</div><div>${escapeHtml(artifact.path || "-")}</div>
+            </div>
+          </div>
+        `);
+      }
+      if (state.lastReportManifest) {
+        blocks.unshift(`
+          <div class="item">
+            <div><span class="pill ok">报告</span><strong>已验证报告清单</strong></div>
+            <pre>${escapeHtml(prettyJson(state.lastReportManifest, 500))}</pre>
+          </div>
+        `);
+      }
+      document.getElementById("artifactBoard").innerHTML = blocks.join("") || emptyBlock("暂无产物 / 报告。");
+    }
+
+    function renderTranscripts(snapshot) {
+      const blocks = [];
+      for (const step of snapshot.plan?.steps || []) {
+        const stateItem = snapshot.step_states?.[step.step_id] || {};
+        blocks.push(`
+          <div class="item">
+            <div><span class="pill ${pillClassByStatus(stateItem.status)}">${escapeHtml(displayStatus(stateItem.status || "pending"))}</span><strong>${escapeHtml(displayStepName(step.name))}</strong></div>
+            <div class="kv">
+              <div>假设</div><div class="wrap">${escapeHtml(displayText(stateItem.hypothesis || "-"))}</div>
+              <div>循环</div><div>${escapeHtml(String(stateItem.iterations || 0))} / ${escapeHtml(String(stateItem.tool_calls || 0))}</div>
+            </div>
+            ${(stateItem.observations || []).slice(-4).map(obs => `<pre>[${escapeHtml(displayStatus(obs.status))}] ${escapeHtml(displayStepName(obs.tool_name))}\n${escapeHtml(displayText(obs.summary || "-"))}\n${escapeHtml(prettyJson(obs.payload || {}, 320))}</pre>`).join("") || emptyBlock("暂无观察记录。")}
+          </div>
+        `);
+      }
+      for (const subagent of Object.values(snapshot.subagents || {})) {
+        blocks.push(`
+          <div class="item">
+            <div><span class="pill ${pillClassByStatus(subagent.status)}">${escapeHtml(displayStatus(subagent.status))}</span><span class="pill soft">子 Agent</span><strong>${escapeHtml(displayTitle(subagent.task?.name || subagent.subagent_id))}</strong></div>
+            <div class="kv">
+              <div>完成原因</div><div class="wrap">${escapeHtml(displayText(subagent.done_reason || "-"))}</div>
+              <div>兜底次数</div><div>${escapeHtml(String(subagent.llm_fallback_count || 0))}</div>
+            </div>
+            ${(subagent.observations || []).slice(-4).map(obs => `<pre>[${escapeHtml(displayStatus(obs.status))}] ${escapeHtml(displayStepName(obs.tool_name))}\n${escapeHtml(displayText(obs.summary || "-"))}\n${escapeHtml(prettyJson(obs.payload || {}, 320))}</pre>`).join("") || emptyBlock("暂无子 Agent 观察记录。")}
+          </div>
+        `);
+      }
+      document.getElementById("transcripts").innerHTML = blocks.join("") || emptyBlock("暂无执行转录。");
+    }
+
+    function renderStatus(snapshot) {
+      const blocks = [
+        { title: "模型服务状态", value: snapshot.provider_status || {} },
+        { title: "待人工确认", value: snapshot.pending_confirmations || [] },
+        { title: "人工确认记录", value: snapshot.manual_approvals || {} },
+        { title: "兜底指标", value: snapshot.fallback_metrics || {} },
+        { title: "报告清单", value: snapshot.report_manifest || {} }
+      ];
+      document.getElementById("statusCards").innerHTML = blocks.map(item => `
+        <div class="item">
+          <strong>${escapeHtml(item.title)}</strong>
+          <pre>${escapeHtml(prettyJson(item.value, 700))}</pre>
+        </div>
+      `).join("");
+    }
+
+    function renderReportManifest(manifest) {
+      document.getElementById("reportManifest").innerHTML = manifest ? `
+        <div class="item">
+          <div><span class="pill ok">报告</span><strong>${escapeHtml(manifest.scan_id || "-")}</strong></div>
+          <div class="kv">
+            <div>JSON</div><div><a href="${escapeHtml(manifest.json_url || "#")}" target="_blank">${escapeHtml(manifest.json_url || "-")}</a></div>
+            <div>HTML</div><div><a href="${escapeHtml(manifest.html_url || "#")}" target="_blank">${escapeHtml(manifest.html_url || "-")}</a></div>
+            <div>PDF</div><div><a href="${escapeHtml(manifest.pdf_url || "#")}" target="_blank">${escapeHtml(manifest.pdf_url || "-")}</a></div>
+          </div>
+        </div>
+      ` : emptyBlock("尚未生成报告。");
+    }
+
+    function renderSnapshot(snapshot) {
+      state.lastSnapshot = snapshot;
+      renderSummary(snapshot);
+      renderPendingConfirmations(snapshot);
+      renderTimeline(snapshot);
+      renderAgentTree(snapshot);
+      renderFindings(snapshot);
+      renderLeads(snapshot);
+      renderVerification(snapshot);
+      renderDecisions(snapshot);
+      renderArtifacts(snapshot);
+      renderTranscripts(snapshot);
+      renderStatus(snapshot);
+      renderReportManifest(snapshot.report_manifest || state.lastReportManifest);
+      renderActionStatus(snapshot);
+      syncControlButtons(snapshot);
+      scheduleAutoRefresh(snapshot);
+    }
+
+    async function performAction(label, fn) {
+      setBusy(true, label);
+      try {
+        await fn();
+      } finally {
+        setBusy(false);
+      }
+    }
+
+    document.addEventListener("toggle", event => {
+      const node = event.target;
+      if (!(node instanceof HTMLDetailsElement)) return;
+      const key = node.dataset.detailKey;
+      if (!key) return;
+      if (node.open) state.openDetails.add(key);
+      else state.openDetails.delete(key);
+    }, true);
+
+    document.getElementById("profile").addEventListener("change", () => {
+      const profile = state.profiles.find(item => item.name === document.getElementById("profile").value) || state.profiles[0];
+      syncLlmControlsFromProfile(profile, { force: true });
+      updateProviderNotice();
+    });
+    document.getElementById("provider").addEventListener("change", () => syncLlmControlsFromProvider({ forceBaseUrl: true }));
+    document.getElementById("model").addEventListener("change", updateProviderNotice);
+    document.getElementById("baseUrl").addEventListener("input", updateProviderNotice);
+    document.querySelectorAll('input[name="taskMode"]').forEach(input => {
+      input.addEventListener("change", syncModuleBundleFromTask);
+    });
+    document.getElementById("moduleBundle").addEventListener("change", clearTaskModeForAdvancedModule);
+    document.getElementById("createBtn").addEventListener("click", () => performAction("创建扫描", createScan).catch(err => alert(err.message)));
+    document.getElementById("stepBtn").addEventListener("click", () => performAction("执行一步", () => runAction("step")).catch(err => alert(err.message)));
+    document.getElementById("continueBtn").addEventListener("click", () => runContinuousSteps().catch(err => {
+      state.continueRequested = false;
+      setBusy(false);
+      alert(err.message);
+    }));
+    document.getElementById("stopBtn").addEventListener("click", () => {
+      state.continueRequested = false;
+      renderActionStatus(state.lastSnapshot);
+      syncControlButtons(state.lastSnapshot);
+    });
+    document.getElementById("reportBtn").addEventListener("click", () => performAction("生成报告", createReport).catch(err => alert(err.message)));
+
+    loadProfiles().catch(err => {
+      state.profilesLoaded = false;
+      document.getElementById("providerNotice").textContent = `引擎配置加载失败：${err.message}`;
+      syncControlButtons(null);
+      renderActionStatus(null);
+    });
+    syncControlButtons(null);
+    renderActionStatus(null);
+    renderReportManifest(null);
+    syncModuleBundleFromTask();
+  </script>
+</body>
+</html>
